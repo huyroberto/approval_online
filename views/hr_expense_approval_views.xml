@@ -56,6 +56,20 @@
                     </group>
                     <group>
                         <group>
+                            <field name="payment_date"/>
+                        </group>
+                        
+                    </group>
+                    <group>
+                        <group>
+                            <field name="avaiable_amount"/>
+                        </group>
+                        <group>
+                            <field name="real_amount"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
                             <field name="company_id"/>
                         </group>
                         <group>
@@ -69,12 +83,7 @@
                     <group>
                             <field name="beneficiary" placeholder="VD Công ty CMC Telecom"/>
                     </group>
-                    <group>
-                        <group>
-                            <field name="payment_date"/>
-                        </group>
-                        
-                    </group>
+                    
                         <group>
                             <group>
                                 <field name="currency_id"/>

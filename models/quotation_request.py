@@ -2,6 +2,13 @@
 import re
 from odoo import api, fields, models
 from datetime import datetime
+import logging
+_logger = logging.getLogger(__name__)
+#import openerp.http as http
+import requests
+import httplib, urllib
+import json
+
 class QuotationRequest(models.Model):
 
     _name ="hr.expense_approval.request_quotation"
@@ -34,6 +41,10 @@ class QuotationRequest(models.Model):
     currency_rate = fields.Float(string="Tỷ giá",required=True,default=1)
     amount_vnd = fields.Float(string='Số tiền (VND)', store=True, compute='_compute_amount_vnd')
     amount_text = fields.Char(string='Số tiền (VND) bằng chữ')
+
+    #BPMS
+    avaiable_amount = fields.Float(string = "Số còn khả dụng", compute='_compute_cost_center_amount',readonly=True)
+    real_amount = fields.Float(string = "Số còn thực tế", compute='_compute_cost_center_amount', readonly=True)
 
     attachment_number = fields.Integer(compute='_compute_attachment_number', string='Số chứng từ')
     pm_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp PM", readonly=True,store=True)
@@ -168,18 +179,53 @@ class QuotationRequest(models.Model):
         res['context'] = {'default_res_model': 'hr.expense_approval.request_quotation', 'default_res_id': self.id}
         return res
     
-    #@api.onchange('financial_activity')
     def _onchange_financial_activity(self):
         self.name = self.cost_center_id.name + " - " + self.financial_activity.name
 
-    @api.onchange('cost_center_id')
-    def _onchange_cost_center_id(self):
-        self.pm_approver_id = self.cost_center_id.pm_approver_id
-        self.td_approver_id = self.cost_center_id.td_approver_id
-        self.sd_approver_id = self.cost_center_id.sd_approver_id
-        self.ce_approver_id = self.cost_center_id.ce_approver_id
-        self.ceo_approver_id = self.cost_center_id.ceo_approver_id
-    
+    #@api.onchange('cost_center_id')
+    @api.depends('payment_date','cost_center_id')
+    def _compute_cost_center_amount(self):
+        for request_quotation in self:    
+            request_quotation.pm_approver_id = request_quotation.cost_center_id.pm_approver_id
+            request_quotation.td_approver_id = request_quotation.cost_center_id.td_approver_id
+            request_quotation.sd_approver_id = request_quotation.cost_center_id.sd_approver_id
+            request_quotation.ce_approver_id = request_quotation.cost_center_id.ce_approver_id
+            request_quotation.ceo_approver_id = request_quotation.cost_center_id.ceo_approver_id
+
+            avaiable_url = 'http://training.kehoach.osscar.topica.vn/api/ApiBoardChiPhi/CanPay'
+            real_url = 'http://training.kehoach.osscar.topica.vn/api/ApiBoardChiPhi/MyPresentMoney'
+            # int(str
+            # (
+            # datetime.strftime
+            #     (
+            #         request_quotation.payment_date,'%Y'
+            #     )
+            # ) + 
+            # str(int(datetime.strftime(request_quotation.payment_date,'%m')))),
+            datepayment = datetime.strptime(request_quotation.payment_date, "%Y-%m-%d")
+            #_logger.info('Payment Date: '+ str(datepayment.year * 10 + datepayment.month))
+            avaiable_params = {
+                                    'cdt':request_quotation.cost_center_id.name[:3],
+                                    'ma_du_toan':request_quotation.cost_center_id.name,
+                                    'thang': datepayment.year * 10 + datepayment.month,
+                                    'so_tien':0
+                               }
+            r = requests.post(url = avaiable_url, data = avaiable_params)
+            r_real = requests.post(url = real_url, data = avaiable_params)
+            #conn = httplib.HTTPConnection("training.kehoach.osscar.topica.vn:80")
+            #conn.request("POST", "/api/ApiBoardChiPhi/CanPay?"+urllib.urlencode(avaiable_params))
+            _logger.info('BPMS Request: ' + urllib.urlencode(avaiable_params))
+            #r = conn.getresponse()
+            response_data_a = json.loads(json.dumps(json.loads(r.content)))
+            response_data_r = json.loads(json.dumps(json.loads(r_real.content)))
+            _logger.info('BPMS Response: ' + str(response_data_a) + str(response_data_r))
+            _logger.info('Out Value: ' + str(response_data_a["outValue"]))
+            if(response_data_a):
+                request_quotation.avaiable_amount = float(response_data_a["outValue"])
+                request_quotation.real_amount = float(response_data_r["outValue"])
+            else:
+                request_quotation.avaiable_amount = 0
+                request_quotation.real_amount = 0
     @api.model
     def create(self,vals):
         vals["quotation_request_id"] = datetime.utcnow().strftime('%Y%m%d.%H%M%S%f')[:-3]
