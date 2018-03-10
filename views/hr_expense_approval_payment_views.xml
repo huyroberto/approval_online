@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<!-- Payment Views -->
+<record id="view_my_payment_requests_tree" model="ir.ui.view">
+            <field name="name">hr.expense_approval.payment_tree</field>
+            <field name="model">hr.expense_approval.request_payment</field>
+            <field name="arch" type="xml">
+                <tree string="My Payment Request">
+                    <field name="payment_request_id"/>
+                    <field name="name"/>
+                    <field name="date" />
+                   <field name="total_amount"/>
+                   <field name="state"/>
+                </tree>
+            </field>
+        </record>
+  <record id="action_my_payment_request" model="ir.actions.act_window">
+            <field name="name">My Payment Request</field>
+            <field name="res_model">hr.expense_approval.request_payment</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,kanban,form,pivot,graph</field>
+            <field name="view_id" ref="view_my_payment_requests_tree"/>
+            <field name="domain">[]</field>
+            <field name="help" type="html">
+              <p>
+                From here the accountant will be able to approve as well as refuse the expenses which are verified by the HR Manager.
+              </p>
+            </field>
+        </record> 
+
+<record id="view_hr_expense_approval_request_payment_form_view" model="ir.ui.view">
+            <field name="name">hr.expense_approval.request_payment.form</field>
+            <field name="model">hr.expense_approval.request_payment</field>
+            <field eval="25" name="priority"/>
+            <field name="arch" type="xml">
+                <form string="Payment Request">
+                 <header>
+                    <button name="action_draft" type="object"
+                                string="Reset to draft"
+                                states="confirmed,approved,done"/>
+                        <button name="action_confirm" type="object"
+                                string="Confirm" states="draft"
+                                class="oe_highlight"/>
+                         <button name="action_approve" type="object"
+                                string="Approve" states="confirmed"
+                                class="oe_highlight"/>
+                        <button name="action_done" type="object"
+                                string="Approve" states="approved"
+                                class="oe_highlight"/>
+                        <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box">
+                        <button name="action_get_attachment_view"
+                            class="oe_stat_button"
+                            icon="fa-book"
+                            type="object">
+                            <field name="attachment_number" widget="statinfo" string="Documents"/>
+                        </button>
+                    </div>
+                     <div>
+                        <label for="name"/>
+                        <h1>
+                            <field name="payment_request_id"/><field name="name" placeholder="vd Thanh toán chi phí hạ tầng"/>
+                        </h1>
+                    </div>
+                    <strong>Đề xuất dự toán</strong>
+                    <field name="quotation_id"/>
+		    <div class="col-xs-6">
+                      <strong> Tổng đề xuất <span class="pull-right text-right">
+			 <field name="total_amount_quotations"/>
+		     
+		      </span></strong>
+		      <!--
+		      <strong> Tổng đề xuất </strong>
+		      <field name="total_amount_quotations"/>
+		      -->
+                    </div>
+
+                        
+                    <hr/>
+                    <strong>Lịch thanh toán</strong>
+                    <field name="expense_line_ids" nolabel="1" widget="many2many">
+                            <tree>
+                                <field name="name"/>
+                                <field name="payment_date"/>
+                                <field name="total_amount" widget="monetary"/>
+                           </tree>
+                        </field>
+                    <hr/>
+		    
+		    <group>                      
+		      <group>
+			
+			<field name="total_cash_amount"/>
+                        </group>
+
+                        <group>
+			
+                          <field name="total_bank_amount"/>
+                                <!-- <field name="cash_amount"/>
+                                <field name="bank_amount"/> -->
+                        </group>
+                    </group>
+                    		    
+
+                    <strong>Phê duyệt Chủ dự toán</strong>
+                    <group>
+                        <group>
+                            <field name="employee_id"/>
+                            <field name="pm_approver_id"/>
+                            <field name="td_approver_id"/>
+                        </group>
+                        <group>
+                           
+                            <field name="sd_approver_id"/>
+                            <field name="ce_approver_id"/>
+                            <field name="ceo_approver_id"/>
+                        </group>
+                    </group>
+                    <hr/>
+                    <strong>Phê duyệt tài chính</strong>
+                    <group>
+                        <group>
+                            <field name="fi_ox_approver_id"/>
+                            <field name="fi_pm_approver_id"/>
+                            <field name="fi_td_approver_id"/>
+                        </group>
+                        <group>
+                           
+                            <field name="fi_sd_approver_id"/>
+                            <field name="fi_ce_approver_id"/>
+                            <field name="fi_cfo_approver_id"/>
+                        </group>
+                    </group>
+                </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_hr_expense_approval_request_payment_line_form_view" model="ir.ui.view">
+            <field name="name">hr.expense_approval.request_payment.line.form</field>
+            <field name="model">hr.expense_approval.request_payment.line</field>
+            <field eval="25" name="priority"/>
+            <field name="arch" type="xml">
+                <form string="Lịch thanh toán">
+                <sheet>
+                    <div class="oe_button_box">
+                        <button name="action_get_attachment_view"
+                            class="oe_stat_button"
+                            icon="fa-book"
+                            type="object">
+                            <field name="attachment_number" widget="statinfo" string="Documents"/>
+                        </button>
+                    </div>
+                     <div>
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="Nội dung thanh toán"/>
+                        </h1>
+                    </div>                    
+                    <group>
+                        <group>
+                                <field name="payment_date"/>
+                                <field name="cash_amount"/>
+                                <field name="bank_amount"/>
+                                <field name="total_amount"/>
+                        </group>
+                        <group>
+                            <field name="bank_owner"/>
+                            <field name="bank_name"/>
+                            <field name="bank_branch"/>
+                            <field name="bank_city"/>
+                            <field name="bank_account"/>
+                            <field name="bank_content"/>
+                        </group>
+                    </group>
+                    </sheet>
+                </form>
+                </field>
+                </record>
+</odoo>

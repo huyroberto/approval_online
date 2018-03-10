@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+ <record id="view_my_quotation_requests_tree" model="ir.ui.view">
+            <field name="name">Đề xuất sử dụng dự toán</field>
+            <field name="model">hr.expense_approval.request_quotation</field>
+            <field name="arch" type="xml">
+                <tree string="My Quotation Request">
+                    <field name="quotation_request_id"/>
+                    <field name="cost_center_id"/>
+                    <field name="payment_date" />
+                    <field name="amount_vnd"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+  <record id="action_my_quotation_request" model="ir.actions.act_window">
+            <field name="name">Đề xuất sử dụng dự toán</field>
+            <field name="res_model">hr.expense_approval.request_quotation</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,kanban,form,pivot,graph</field>
+            <field name="view_id" ref="view_my_quotation_requests_tree"/>
+            <field name="domain">[]</field>
+            <field name="help" type="html">
+              <p>
+                Nơi tạo và phê duyệt các Đề xuất sử dụng dự toán
+              </p>
+            </field>
+        </record> 
+
+<record id="view_hr_expense_approval_request_quotation_form_view" model="ir.ui.view">
+            <field name="name">hr.expense_approval.request_quotation.form</field>
+            <field name="model">hr.expense_approval.request_quotation</field>
+            <field eval="25" name="priority"/>
+            <field name="arch" type="xml">
+<form string="Quotation Request">
+                 <header>
+                    <button name="action_draft" type="object" string="Reset to draft" states="confirmed,approved,done"/>
+                        <button name="action_confirm" type="object" string="Confirm" states="draft" class="oe_highlight"/>
+                         <button name="action_approve" type="object" string="Approve" states="confirmed" class="oe_highlight"/>
+                        <button name="action_done" type="object" string="Approve" states="approved" class="oe_highlight"/>
+                        <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box">
+                        <button name="action_get_attachment_view" class="oe_stat_button" icon="fa-book" type="object">
+                            <field name="attachment_number" widget="statinfo" string="Chứng từ"/>
+                        </button>
+                    </div>
+                    <h2>Thông tin dự toán</h2>
+                    <field name="quotation_request_id"/>
+                     <group>
+                        <group>
+                            <field name="cost_center_id"/>
+                        </group>
+                        <group>
+                            <field name="company_id"/>
+                        </group>
+                    </group>
+                    <group><field name="name"/></group>
+                    <group><field name="financial_activity"/></group>
+                    <hr/>
+                    <h2>Thông tin thanh toán</h2>
+                    <group>
+                            <field name="beneficiary" placeholder="VD Công ty CMC Telecom"/>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="payment_date"/>
+                        </group>
+                        
+                    </group>
+                        <group>
+                            <group>
+                                <field name="currency_id"/>
+                                <field name="amount"/>
+                            </group>
+                            <group>
+                                <field name="currency_rate"/>
+                                <field name="amount_vnd"/>
+                            </group>
+                        </group>
+                    <hr/>
+                    <h2>Phê duyệt Chủ dự toán</h2>
+                    <group>
+                        <group>
+                            <field name="employee_id"/>
+                            <field name="pm_approver_id"/>
+                            <field name="td_approver_id"/>
+                        </group>
+                        <group>
+                           
+                            <field name="sd_approver_id"/>
+                            <field name="ce_approver_id"/>
+                            <field name="ceo_approver_id"/>
+                        </group>
+                    </group>
+                    <hr/>
+                    <h2>Phê duyệt tài chính</h2>
+                    <field name="fi_ox_approver_id"/>
+                </sheet>
+                </form>
+            </field>
+        </record>
+
+  <!-- <menuitem name="All Requests" id="menu_hr_expense_approval_payment_root_all" parent="menu_hr_expense_approval_payment_root" groups="base.group_user" /> -->
+</odoo>
