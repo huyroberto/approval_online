@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-     <record id="view_settings_activity_tree" model="ir.ui.view">
+    <record id="view_settings_activity_tree" model="ir.ui.view">
             <field name="name">Hoạt động Tài chính</field>
             <field name="model">hr.expense_approval.financial_activity</field>
             <field name="arch" type="xml">
@@ -21,7 +21,7 @@
             <field name="domain">[]</field>
             <field name="help" type="html">
               <p>
-                From here the accountant will be able to approve as well as refuse the expenses which are verified by the HR Manager.
+                
               </p>
             </field>
         </record> 
@@ -95,7 +95,7 @@
             <field name="domain">[]</field>
             <field name="help" type="html">
               <p>
-                From here the accountant will be able to approve as well as refuse the expenses which are verified by the HR Manager.
+                
               </p>
             </field>
         </record> 
@@ -128,4 +128,31 @@
                 </form>
             </field>
         </record>
+
+<record id="view_settings_approval_level_tree" model="ir.ui.view">
+            <field name="name">Mức phê duyệt</field>
+            <field name="model">hr.expense_approval.level</field>
+            <field name="arch" type="xml">
+                <tree string="Hoạt động Tài chính">
+                    <field name="name"/>
+                    <field name="from_amount"/>
+                    <field name="to_amount"/>
+                   <field name="level"/>
+                </tree>
+            </field>
+        </record>
+  <record id="action_settings_activity" model="ir.actions.act_window">
+            <field name="name">Mức phê duyệt</field>
+            <field name="res_model">hr.expense_approval.level</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,kanban,form,pivot,graph</field>
+            <field name="view_id" ref="view_settings_activity_tree"/>
+            <field name="domain">[]</field>
+            <field name="help" type="html">
+              <p>
+                
+              </p>
+            </field>
+        </record> 
+
 </odoo>

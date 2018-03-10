@@ -43,3 +43,14 @@ class FinancialCostCenterApprover(models.Model):
 class RequestLocation(models.Model):
     _name = "hr.expense_approval.location"
     name = fields.Char(string="Địa điểm")
+
+class ApprovalLevel(models.Model):
+    _name = "hr.expense_approval.level"
+    from_amount = fields.Integer(string="Từ số tiền",default=0,required=True)
+    to_amount = fields.Integer(string="Tới số tiền",required=True)
+    level = fields.Selection([
+        ('pm', 'PM'),
+        ('td', 'TD'),
+        ('sd', 'SD'),
+        ('ce', 'CE')
+        ],  string='Cấp phê duyệt', index=True, store=True)
