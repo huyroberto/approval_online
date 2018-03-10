@@ -89,6 +89,7 @@ class QuotationRequest(models.Model):
         
     @api.multi
     def action_quotation_send(self):
+        return True
         # '''
         # This function opens a window to compose an email, with the edi sale template message loaded by default
         # '''
@@ -122,18 +123,18 @@ class QuotationRequest(models.Model):
         #    'view_id': compose_form_id,
         #    'target': 'new',
         #   'context': ctx,
-        }
+        #}
 
     
-    @api.multi
-    def force_quotation_send(self):
+    #@api.multi
+    #def force_quotation_send(self):
         # for quotation in self:
         #     email_act = quotation.action_quotation_send()
         #     if email_act and email_act.get('context'):
         #         email_ctx = email_act['context']
         #         email_ctx.update(default_email_from=order.company_id.email)
         #         order.with_context(email_ctx).message_post_with_template(email_ctx.get('default_template_id'))
-        return True
+    #    return True
 
 
     @api.multi

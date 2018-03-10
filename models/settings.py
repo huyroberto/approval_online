@@ -46,6 +46,7 @@ class RequestLocation(models.Model):
 
 class ApprovalLevel(models.Model):
     _name = "hr.expense_approval.level"
+    name = fields.Char(string="Mức phê duyệt")
     from_amount = fields.Integer(string="Từ số tiền",default=0,required=True)
     to_amount = fields.Integer(string="Tới số tiền",required=True)
     level = fields.Selection([

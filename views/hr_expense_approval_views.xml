@@ -7,7 +7,7 @@
                 <tree string="My Quotation Request">
                     <field name="quotation_request_id"/>
                     <field name="cost_center_id"/>
-                    <field name="localtion_id"/>
+                    <field name="location_id"/>
                     <field name="payment_date" />
                     <field name="amount_vnd"/>
                     <field name="state"/>
@@ -107,6 +107,4 @@
                 </form>
             </field>
         </record>
-
-  <!-- <menuitem name="All Requests" id="menu_hr_expense_approval_payment_root_all" parent="menu_hr_expense_approval_payment_root" groups="base.group_user" /> -->
 </odoo>

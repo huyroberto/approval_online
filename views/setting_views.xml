@@ -133,7 +133,7 @@
             <field name="name">Mức phê duyệt</field>
             <field name="model">hr.expense_approval.level</field>
             <field name="arch" type="xml">
-                <tree string="Hoạt động Tài chính">
+                <tree string="Hạn mức phê duyệt">
                     <field name="name"/>
                     <field name="from_amount"/>
                     <field name="to_amount"/>
@@ -141,12 +141,12 @@
                 </tree>
             </field>
         </record>
-  <record id="action_settings_activity" model="ir.actions.act_window">
+  <record id="action_settings_level" model="ir.actions.act_window">
             <field name="name">Mức phê duyệt</field>
             <field name="res_model">hr.expense_approval.level</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,kanban,form,pivot,graph</field>
-            <field name="view_id" ref="view_settings_activity_tree"/>
+            <field name="view_id" ref="view_settings_approval_level_tree"/>
             <field name="domain">[]</field>
             <field name="help" type="html">
               <p>
@@ -155,4 +155,26 @@
             </field>
         </record> 
 
+<record id="view_settings_approval_location_tree" model="ir.ui.view">
+            <field name="name">Địa điểm</field>
+            <field name="model">hr.expense_approval.location</field>
+            <field name="arch" type="xml">
+                <tree string="Địa điểm">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+  <record id="action_settings_location" model="ir.actions.act_window">
+            <field name="name">Địa điểm</field>
+            <field name="res_model">hr.expense_approval.location</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,kanban,form,pivot,graph</field>
+            <field name="view_id" ref="view_settings_approval_location_tree"/>
+            <field name="domain">[]</field>
+            <field name="help" type="html">
+              <p>
+                
+              </p>
+            </field>
+        </record> 
 </odoo>
