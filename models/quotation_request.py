@@ -21,6 +21,8 @@ class QuotationRequest(models.Model):
     #Người đề nghị
     employee_id = fields.Many2one('hr.employee', string="Người yêu cầu",readonly=True, required=True, default=lambda self: self.env['hr.employee'].search([('user_id', '=', self.env.uid)], limit=1))
     company_id = fields.Many2one('res.company', string='Công ty', default=lambda self: self.env.user.company_id, store=True)
+    
+    location_id = fields.Many2one('hr.expense_approval.location', string="Địa điểm",required=True,store=True)
     #department_id = fields.Many2one('hr.department', string='Phòng ban', readonly=True, store=True)
     
     #Nguoi huong

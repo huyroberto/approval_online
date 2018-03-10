@@ -39,3 +39,7 @@ class FinancialCostCenterApprover(models.Model):
     sd_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp SD")
     ce_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp CE")
     ceo_approver_id = fields.Many2one('hr.employee', string="Giám đốc")
+
+class RequestLocation(models.Model):
+    _name = "hr.expense_approval.location"
+    name = fields.Char(string="Địa điểm")
