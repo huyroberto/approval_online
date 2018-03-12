@@ -63,6 +63,17 @@
                         </group>
                     </group>
                     <group>
+                        <group>
+                            <field name="ox_approver_id"/>
+                            <field name="pm_approver_id"/>
+                            <field name="td_approver_id"/>
+                        </group>
+                        <group>
+                            <field name="sd_approver_id"/>
+                            <field name="ce_approver_id"/>
+                        </group>
+                    </group>  
+                    <group>
                             <group>
                                 <field name="status"/>
                             </group>
