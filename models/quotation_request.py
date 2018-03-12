@@ -47,6 +47,13 @@ class QuotationRequest(models.Model):
     real_amount = fields.Float(string = "Số còn thực tế", compute='_compute_cost_center_amount', readonly=True)
 
     attachment_number = fields.Integer(compute='_compute_attachment_number', string='Số chứng từ')
+    
+    #Approval
+
+    approval_level = fields.Many2one('hr.expense_approval.level',string='Cấp phê duyệt', compute='_set_approval_level',readonly=True,store=True)
+    approval_next =  fields.Many2one('hr.employee', string="Người phê duyệt tiếp", compute='_compute_cost_center_amount', readonly=True,store=True)
+    approval_list = fields.Char(string = "Danh sách phê duyệt", compute='_set_approval_level',store=True)
+
     pm_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp PM", readonly=True,store=True)
     td_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp TD",readonly=True,store=True)
     sd_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp SD",readonly=True,store=True)
@@ -54,15 +61,7 @@ class QuotationRequest(models.Model):
     ceo_approver_id = fields.Many2one('hr.employee', string="Giám đốc",readonly=True,store=True)
 
     fi_ox_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp OX")
-    # fi_pm_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp PM")
-    # fi_td_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp TD")
-    # fi_sd_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp SD")
-    # fi_ce_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp CE")
-    # fi_cfo_approver_id = fields.Many2one('hr.employee', string="Kế toán trưởng")
-
-
-    #Status
-    #sheet_id = fields.Many2one('hr.expense.approval.sheet', string="Expense Report", readonly=True, copy=False) 
+    
 
     payment_request_id = fields.Char(string="Payment Request")
 	# fields.Many2one('hr.expense_approval.request_payment',
@@ -150,20 +149,89 @@ class QuotationRequest(models.Model):
 
     @api.multi
     def action_approve(self):
-        self.state = 'approved'
+        _logger.info('Approve now')
+        _logger.info('Next Approver:' + str(self.approval_next.user_id.id ))
+        _logger.info('Next Approver:' + str(self.env.uid))
+        if(self.approval_next.user_id.id != self.env.uid):
+            return {
+                    'warning': {
+                        'title': 'Warning!',
+                        'message': 'The warning text'}
+            }
+        else:
+            # approvers = self.approval_list.split(“|”)
+            # for approver in approvers
+            #     approver_id = int(approver)
+            my_emp_id = int(self.env.uid)
+            my_emp = self.env['hr.employee'].search([('user_id', '=', my_emp_id)])
+            _logger.info('My Employee ' + str(my_emp))
+            _logger.info('PM Approver ' + str(self.pm_approver_id.id))
+            #Lay list approvers cua cost center
+            if(self.pm_approver_id.id is False):
+                _logger.info('Set PM Approver')
+                self.pm_approver_id = my_emp
+                self.approval_next = self.cost_center_id.td_approver_id
+                return
+            if(self.td_approver_id.id is False):
+                _logger.info('Set TD Approver')
+                self.td_approver_id = my_emp
+                if(self.approval_level.level == "td"):
+                    self.state = 'approved'
+                    return
+                else:
+                    self.approval_next = self.cost_center_id.sd_approver_id
+            if(self.sd_approver_id.id is False):
+                _logger.info('Set SD Approver')
+                self.sd_approver_id = my_emp
+                if(self.approval_level.level == "ce"):
+                    self.state = 'approved'
+                    return
+                else:
+                    self.approval_next = self.cost_center_id.ce_approver_id
+            if(self.ce_approver_id.id is False):
+                _logger.info('Set CE Approver')
+                self.ce_approver_id = my_emp
+                self.state = 'approved'                  
+                self.approval_next = None
         #approval PM,TD,SD,CE,CEO,
         
     @api.multi
     def action_done(self):
+        if(self.approval_next.user_id.id != self.env.uid):
+            return {
+                    'warning': {
+                        'title': 'Warning!',
+                        'message': 'The warning text'}
+            }
         self.state = 'done'
         #approval account
     
     @api.depends('amount', 'currency_id','currency_rate')
     def _compute_amount_vnd(self):
+        _logger.info("My User ID" + str(self.env.uid))
         for request_quotation in self:
             request_quotation.amount_vnd = request_quotation.amount * request_quotation.currency_rate
-            
     
+    @api.depends('amount_vnd','cost_center_id')
+    def _set_approval_level(self):
+         for request_quotation in self:
+            list_level = self.env['hr.expense_approval.level'].search([])
+            for level in list_level:
+                #_logger.info('Level: ' + level.name + "-" + str(level.from_amount) + " - " + str(level.to_amount))
+                if(level.from_amount < request_quotation.amount_vnd and (level.to_amount == 0 or level.to_amount >= request_quotation.amount_vnd)):
+                    request_quotation.approval_level = level
+                    #Tinh lai list approval
+                    approval_list = ""
+                    _logger.info('Level Selection: ' + str(level.level))
+                    if(level.level == "td"):
+                        approval_list = str(request_quotation.cost_center_id.pm_approver_id.id) + "|" + str(request_quotation.cost_center_id.td_approver_id.id)
+                    if(level.level == "sd"):
+                        approval_list = str(request_quotation.cost_center_id.pm_approver_id.id) + "|" + str(request_quotation.cost_center_id.td_approver_id.id) + "|" + str(request_quotation.cost_center_id.sd_approver_id.id)
+                    if(level.level == "ce"):
+                        approval_list = str(request_quotation.cost_center_id.pm_approver_id.id) + "|" + str(request_quotation.cost_center_id.td_approver_id.id) + "|" + str(request_quotation.cost_center_id.sd_approver_id.id)   + "|" + str(request_quotation.cost_center_id.ce_approver_id.id)
+                    request_quotation.approval_list = approval_list
+                    _logger.info("Approval List: " + approval_list)
+
     @api.multi
     def _compute_attachment_number(self):
         attachment_data = self.env['ir.attachment'].read_group([('res_model', '=', 'hr.expense_approval.request_quotation'), ('res_id', 'in', self.ids)], ['res_id'], ['res_id'])
@@ -185,47 +253,63 @@ class QuotationRequest(models.Model):
     #@api.onchange('cost_center_id')
     @api.depends('payment_date','cost_center_id')
     def _compute_cost_center_amount(self):
-        for request_quotation in self:    
-            request_quotation.pm_approver_id = request_quotation.cost_center_id.pm_approver_id
-            request_quotation.td_approver_id = request_quotation.cost_center_id.td_approver_id
-            request_quotation.sd_approver_id = request_quotation.cost_center_id.sd_approver_id
-            request_quotation.ce_approver_id = request_quotation.cost_center_id.ce_approver_id
-            request_quotation.ceo_approver_id = request_quotation.cost_center_id.ceo_approver_id
+        if(self.cost_center_id):
+            for request_quotation in self:    
 
-            avaiable_url = 'http://training.kehoach.osscar.topica.vn/api/ApiBoardChiPhi/CanPay'
-            real_url = 'http://training.kehoach.osscar.topica.vn/api/ApiBoardChiPhi/MyPresentMoney'
-            # int(str
-            # (
-            # datetime.strftime
-            #     (
-            #         request_quotation.payment_date,'%Y'
-            #     )
-            # ) + 
-            # str(int(datetime.strftime(request_quotation.payment_date,'%m')))),
-            datepayment = datetime.strptime(request_quotation.payment_date, "%Y-%m-%d")
-            #_logger.info('Payment Date: '+ str(datepayment.year * 10 + datepayment.month))
-            avaiable_params = {
-                                    'cdt':request_quotation.cost_center_id.name[:3],
-                                    'ma_du_toan':request_quotation.cost_center_id.name,
-                                    'thang': datepayment.year * 10 + datepayment.month,
-                                    'so_tien':0
-                               }
-            r = requests.post(url = avaiable_url, data = avaiable_params)
-            r_real = requests.post(url = real_url, data = avaiable_params)
-            #conn = httplib.HTTPConnection("training.kehoach.osscar.topica.vn:80")
-            #conn.request("POST", "/api/ApiBoardChiPhi/CanPay?"+urllib.urlencode(avaiable_params))
-            _logger.info('BPMS Request: ' + urllib.urlencode(avaiable_params))
-            #r = conn.getresponse()
-            response_data_a = json.loads(json.dumps(json.loads(r.content)))
-            response_data_r = json.loads(json.dumps(json.loads(r_real.content)))
-            _logger.info('BPMS Response: ' + str(response_data_a) + str(response_data_r))
-            _logger.info('Out Value: ' + str(response_data_a["outValue"]))
-            if(response_data_a):
+                #Next Approval Online
+                #Phu thuoc vao cost_center_id
+                request_quotation.approval_next = request_quotation.cost_center_id.pm_approver_id
+                if(request_quotation.pm_approver_id):
+                    request_quotation.approval_next = request_quotation.cost_center_id.td_approver_id
+                
+                if(request_quotation.td_approver_id and (request_quotation.approval_level.level == "sd" or request_quotation.approval_level.level == "ce")):
+                    request_quotation.approval_next = request_quotation.cost_center_id.sd_approver_id
+                
+                if(request_quotation.sd_approver_id and (request_quotation.approval_level.level == "ce")):
+                    request_quotation.approval_next = request_quotation.cost_center_id.ce_approver_id
+
+                _logger.info('Next Approval: ' + str(request_quotation.approval_next))
+
+                #request_quotation.pm_approver_id = request_quotation.cost_center_id.pm_approver_id
+                #request_quotation.td_approver_id = request_quotation.cost_center_id.td_approver_id
+                #request_quotation.sd_approver_id = request_quotation.cost_center_id.sd_approver_id
+                #request_quotation.ce_approver_id = request_quotation.cost_center_id.ce_approver_id
+                #request_quotation.ceo_approver_id = request_quotation.cost_center_id.ceo_approver_id
+
+                avaiable_url = 'http://training.kehoach.osscar.topica.vn/api/ApiBoardChiPhi/CanPay'
+                real_url = 'http://training.kehoach.osscar.topica.vn/api/ApiBoardChiPhi/MyPresentMoney'
+                # int(str
+                # (
+                # datetime.strftime
+                #     (
+                #         request_quotation.payment_date,'%Y'
+                #     )
+                # ) + 
+                # str(int(datetime.strftime(request_quotation.payment_date,'%m')))),
+                datepayment = datetime.strptime(request_quotation.payment_date, "%Y-%m-%d")
+                #_logger.info('Payment Date: '+ str(datepayment.year * 10 + datepayment.month))
+                avaiable_params = {
+                                        'cdt':request_quotation.cost_center_id.name[:3],
+                                        'ma_du_toan':request_quotation.cost_center_id.name,
+                                        'thang': datepayment.year * 10 + datepayment.month,
+                                        'so_tien':0
+                                }
+                r = requests.post(url = avaiable_url, data = avaiable_params)
+                r_real = requests.post(url = real_url, data = avaiable_params)
+                #conn = httplib.HTTPConnection("training.kehoach.osscar.topica.vn:80")
+                #conn.request("POST", "/api/ApiBoardChiPhi/CanPay?"+urllib.urlencode(avaiable_params))
+                _logger.info('BPMS Request: ' + urllib.urlencode(avaiable_params))
+                #r = conn.getresponse()
+                response_data_a = json.loads(json.dumps(json.loads(r.content)))
+                response_data_r = json.loads(json.dumps(json.loads(r_real.content)))
+                _logger.info('BPMS Response: ' + str(response_data_a) + str(response_data_r))
+                _logger.info('Out Value: ' + str(response_data_a["outValue"]))
+                #if(response_data_a["success"]==1):
                 request_quotation.avaiable_amount = float(response_data_a["outValue"])
                 request_quotation.real_amount = float(response_data_r["outValue"])
-            else:
-                request_quotation.avaiable_amount = 0
-                request_quotation.real_amount = 0
+            #else:
+            #    request_quotation.avaiable_amount = 0
+            #    request_quotation.real_amount = 0
     @api.model
     def create(self,vals):
         vals["quotation_request_id"] = datetime.utcnow().strftime('%Y%m%d.%H%M%S%f')[:-3]

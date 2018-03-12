@@ -5,7 +5,7 @@
 {
     'name': 'Expense Approval Online',
     'version': '2.0',
-    'category': 'Human Resources',
+    'category': 'Accounting',
     'sequence': 95,
     'summary': 'Expense Book and Approval Online',
     'description': 'Topica- Expense Book and Approval Online',
@@ -13,6 +13,7 @@
     'website': 'http://erp.hapi.solutions',
     'depends': ['base','hr'],
     'data': [
+        'security/ir.model.access.csv',
         'views/hr_expense_approval_views.xml',
         'views/hr_expense_approval_payment_views.xml',
         'views/setting_views.xml',

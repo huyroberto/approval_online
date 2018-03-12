@@ -23,7 +23,7 @@
             <field name="name">Approve</field>
             <field name="wkf_id" ref="wkf_expense_quotation"/>
             <field name="kind">function</field>
-            <field name="action">action_approved()</field>
+            <field name="action">action_approve()</field>
         </record>
         <record model="workflow.activity" id="done">
             <field name="name">Done</field>
