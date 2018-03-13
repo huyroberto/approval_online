@@ -177,33 +177,53 @@ class QuotationRequest(models.Model):
                 self.td_approver_id = my_emp
                 if(self.approval_level.level == "td"):
                     self.state = 'approved'
-                    return
+                    self.approval_next = self.financial_activity.ox_approver_id
                 else:
                     self.approval_next = self.cost_center_id.sd_approver_id
+                return
             if(self.sd_approver_id.id is False):
                 _logger.info('Set SD Approver')
                 self.sd_approver_id = my_emp
                 if(self.approval_level.level == "ce"):
                     self.state = 'approved'
-                    return
+                    self.approval_next = self.financial_activity.ox_approver_id
                 else:
                     self.approval_next = self.cost_center_id.ce_approver_id
+                return
             if(self.ce_approver_id.id is False):
                 _logger.info('Set CE Approver')
                 self.ce_approver_id = my_emp
-                self.state = 'approved'                  
-                self.approval_next = None
+                self.state = 'approved'         
+                #Chuyen sang tai chinh duyet
+                self.approval_next = self.financial_activity.ox_approver_id
         #approval PM,TD,SD,CE,CEO,
         
     @api.multi
     def action_done(self):
         if(self.approval_next.user_id.id != self.env.uid):
-            return {
-                    'warning': {
-                        'title': 'Warning!',
-                        'message': 'The warning text'}
-            }
-        self.state = 'done'
+            return
+        else:
+            my_emp_id = int(self.env.uid)
+            my_emp = self.env['hr.employee'].search([('user_id', '=', my_emp_id)])
+
+            self.fi_ox_approver_id = my_emp
+            self.state = 'done'
+
+            #Create payment request
+            payment = self.env['hr.expense_approval.request_payment'].create({
+                    'name': self.name,
+                    'description': self.name,
+                    'date': self.date,
+                    'employee_id': self.employee_id.id,
+                    'company_id': self.company_id.id,
+                    'total_amount_quotations' : self.amount_vnd,
+                    'approval_level' : self.approval_level.id,
+                    'cost_center_id' : self.cost_center_id.id,
+                    'payment_date' : self.payment_date,
+                    'quotation_id' : self.id,
+                    'financial_activity' : self.financial_activity.id
+            })
+
         #approval account
     
     @api.depends('amount', 'currency_id','currency_rate')

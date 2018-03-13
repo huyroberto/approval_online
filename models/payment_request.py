@@ -2,6 +2,11 @@
 import re
 from odoo import api, fields, models
 from datetime import datetime
+import logging
+import requests
+import httplib, urllib
+import json
+_logger = logging.getLogger(__name__)
 
 class PaymentRequest(models.Model):
     _name = "hr.expense_approval.request_payment"
@@ -9,21 +14,29 @@ class PaymentRequest(models.Model):
     _description = "Yeu cau thanh toan"
 
     name = fields.Char(string="Yêu cầu thanh toán")
-    payment_request_id = fields.Char(string="Mã",readonly=True)
+    payment_request_id = fields.Char(string="Mã")
     description = fields.Text(string="Nội dung")
 
      #Ngày đề nghị
     date = fields.Date(readonly=True, default=fields.Date.context_today, string="Ngày yêu cầu")
-    
+    payment_date = fields.Date(default=fields.Date.context_today, string="Ngày đề nghị thanh toán",required=True)
+    financial_activity = fields.Many2one('hr.expense_approval.financial_activity',string="Hoạt động Tài chính",store=True)
+    cost_center_id = fields.Many2one('hr.expense_approval.financial_costcenter_approver',string="Mã dự toán",store=True)
     #Người đề nghị
     employee_id = fields.Many2one('hr.employee', string="Người yêu cầu", required=True, default=lambda self: self.env['hr.employee'].search([('user_id', '=', self.env.uid)], limit=1))
     company_id = fields.Many2one('res.company', string='Công ty', readonly=True, default=lambda self: self.env.user.company_id)
+    location_id = fields.Many2one('hr.expense_approval.location', string="Địa điểm",store=True)
+    beneficiary = fields.Char(string="Người/Công ty thụ hưởng")
+
+    #BPMS
+    avaiable_amount = fields.Float(string = "Số còn khả dụng", compute='_compute_cost_center_amount',readonly=True)
+    real_amount = fields.Float(string = "Số còn thực tế", compute='_compute_cost_center_amount', readonly=True)
     #department_id = fields.Many2one('hr.department', string='Phòng ban', readonly=True)
 
     #Amount
     total_amount = fields.Float(string='Tổng tiền')#, compute='_compute_totalAmount')
-    cash_amount = fields.Float(string='Tiền mặt')
-    bank_amount = fields.Float(string='Ngân hàng')
+    # cash_amount = fields.Float(string='Tiền mặt')
+    # bank_amount = fields.Float(string='Ngân hàng')
     total_amount_text = fields.Char(string="Tổng tiền bằng chữ")
 
     total_cash_amount = fields.Float(string='Tổng tiền mặt', compute='_compute_totalAmount')
@@ -44,12 +57,14 @@ class PaymentRequest(models.Model):
     fi_ce_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp CE")
     fi_cfo_approver_id = fields.Many2one('hr.employee', string="Kế toán trưởng")
 
+    approval_level = fields.Many2one('hr.expense_approval.level',string='Cấp phê duyệt', store=True)
+    approval_next =  fields.Many2one('hr.employee', string="Người phê duyệt tiếp", compute='_compute_cost_center_amount', readonly=True,store=True)
+
     #quotation request
     quotation_id = fields.Many2one('hr.expense_approval.request_quotation',
-                                          string='Các đề xuất dự toán',required=True)
+                                          string='Đề xuất dự toán')
 
-    total_amount_quotations = fields.Float(string='Tong tien du toan',
-                                           compute='_compute_total_amount')
+    total_amount_quotations = fields.Float(string='Tong tien du toan')
     #Line
     expense_line_ids = fields.One2many('hr.expense_approval.request_payment.line', 'payment_id', string="Các lịch thanh toán",ondelete="cascade", copy=False)
     #Status
@@ -78,30 +93,18 @@ class PaymentRequest(models.Model):
     def action_done(self):
         self.state = 'done'
 
-    #@api.depends('quotation_line_ids')
-    @api.onchange('quotation_line_ids')
-    #@api.multi
-    def _compute_total_amount(self):
-        #self.total_amount = 100
-        total = 0
-        # if(self.quotation_line_ids)
-        #     for quotation_line in self.quotation_line_ids:
-        #         total= total+ quotation_line.amount_vnd
-        # self.total_amount = total
-        # self.total_amount_quotations = total
-
-    #s
-    @api.onchange('expense_line_ids')
-    #@api.multi
+    @api.depends('expense_line_ids.bank_amount','expense_line_ids.cash_amount')
+    #@api.onchange('expense_line_ids')
     def _compute_totalAmount(self):
-        total_cash = 0.0
-        total_bank = 0.0
-        for expense in self.expense_line_ids:
-            total_cash = total_cash + expense.cash_amount
-            total_bank = total_bank + expense.bank_amount
-
-        self.total_cash_amount = total_cash
-        self.total_bank_amount = total_bank
+        for request in self:
+            total_cash = total_bank = 0.0
+            for line in request.expense_line_ids:
+                total_cash += line.cash_amount
+                total_bank += line.bank_amount
+            request.update({
+                'total_cash_amount': total_cash,
+                'total_bank_amount': total_bank
+            })
 
     @api.multi
     def _compute_attachment_number(self):
@@ -116,6 +119,58 @@ class PaymentRequest(models.Model):
         res['domain'] = [('res_model', '=', 'hr.expense_approval.request_payment'), ('res_id', 'in', self.ids)]
         res['context'] = {'default_res_model': 'hr.expense_approval.request_payment', 'default_res_id': self.id}
         return res
+    
+    @api.depends('payment_date','cost_center_id')
+    def _compute_cost_center_amount(self):
+        if(self.cost_center_id):
+            for request_payment in self:    
+
+                #Next Approval Online
+                #Phu thuoc vao cost_center_id
+                request_payment.approval_next = request_payment.cost_center_id.pm_approver_id
+                if(request_payment.pm_approver_id):
+                    request_payment.approval_next = request_payment.cost_center_id.td_approver_id
+                
+                if(request_payment.td_approver_id and (request_payment.approval_level.level == "sd" or request_payment.approval_level.level == "ce")):
+                    request_payment.approval_next = request_payment.cost_center_id.sd_approver_id
+                
+                if(request_payment.sd_approver_id and (request_payment.approval_level.level == "ce")):
+                    request_payment.approval_next = request_payment.cost_center_id.ce_approver_id
+
+                _logger.info('Next Approval: ' + str(request_payment.approval_next))
+
+                avaiable_url = 'http://training.kehoach.osscar.topica.vn/api/ApiBoardChiPhi/CanPay'
+                real_url = 'http://training.kehoach.osscar.topica.vn/api/ApiBoardChiPhi/MyPresentMoney'
+                # int(str
+                # (
+                # datetime.strftime
+                #     (
+                #         request_quotation.payment_date,'%Y'
+                #     )
+                # ) + 
+                # str(int(datetime.strftime(request_quotation.payment_date,'%m')))),
+                datepayment = datetime.strptime(request_payment.payment_date, "%Y-%m-%d")
+                #_logger.info('Payment Date: '+ str(datepayment.year * 10 + datepayment.month))
+                avaiable_params = {
+                                        'cdt':request_payment.cost_center_id.name[:3],
+                                        'ma_du_toan':request_payment.cost_center_id.name,
+                                        'thang': datepayment.year * 10 + datepayment.month,
+                                        'so_tien':0
+                                }
+                r = requests.post(url = avaiable_url, data = avaiable_params)
+                r_real = requests.post(url = real_url, data = avaiable_params)
+                #conn = httplib.HTTPConnection("training.kehoach.osscar.topica.vn:80")
+                #conn.request("POST", "/api/ApiBoardChiPhi/CanPay?"+urllib.urlencode(avaiable_params))
+                _logger.info('BPMS Request: ' + urllib.urlencode(avaiable_params))
+                #r = conn.getresponse()
+                response_data_a = json.loads(json.dumps(json.loads(r.content)))
+                response_data_r = json.loads(json.dumps(json.loads(r_real.content)))
+                _logger.info('BPMS Response: ' + str(response_data_a) + str(response_data_r))
+                _logger.info('Out Value: ' + str(response_data_a["outValue"]))
+                #if(response_data_a["success"]==1):
+                request_payment.avaiable_amount = float(response_data_a["outValue"])
+                request_payment.real_amount = float(response_data_r["outValue"])
+    
     @api.model
     def create(self,vals):
         vals["payment_request_id"] = datetime.utcnow().strftime('%Y%m%d.%H%M%S%f')[:-3]

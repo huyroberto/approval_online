@@ -12,6 +12,7 @@ class FinancialActivity(models.Model):
     credit_account = fields.Many2one('account.account', string='Tài khoản ghi có')
     attachment_number = fields.Integer(compute='_compute_attachment_number', string='Số chứng từ')
     
+    ox_approver_id = fields.Many2one('hr.employee', string="Nhân viên phụ trách")
     pm_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp PM")
     td_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp TD")
     sd_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp SD")
@@ -40,7 +41,7 @@ class FinancialCostCenterApprover(models.Model):
     _name = "hr.expense_approval.financial_costcenter_approver"
     name = fields.Char(string="Mã dự toán",required=True)
 
-    ox_approver_id = fields.Many2one('hr.employee', string="Nhân viên phụ trách")
+    
     pm_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp PM")
     td_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp TD")
     sd_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp SD")

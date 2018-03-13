@@ -64,6 +64,33 @@
                             <field name="payment_request_id"/><field name="name" placeholder="vd Thanh toán chi phí hạ tầng"/>
                         </h1>
                     </div>
+                    <group>
+                        <group>
+                            <field name="cost_center_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="payment_date"/>
+                        </group>
+                        
+                    </group>
+                    <group>
+                        <group>
+                            <field name="avaiable_amount"/>
+                        </group>
+                        <group>
+                            <field name="real_amount"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="company_id"/>
+                        </group>
+                        <group>
+                            <field name="location_id"/>
+                        </group>
+                    </group>
                     <strong>Đề xuất dự toán</strong>
                     <field name="quotation_id"/>
 		    <div class="col-xs-6">
@@ -102,7 +129,10 @@
                                 <field name="bank_amount"/> -->
                         </group>
                     </group>
-                    		    
+                    <group>
+                        <group><field name='approval_level'/></group>
+                        <group><field name='approval_next'/></group>
+                    </group>		    
 
                     <strong>Phê duyệt Chủ dự toán</strong>
                     <group>
