@@ -73,8 +73,8 @@ class QuotationRequest(models.Model):
         ('draft', 'Bản draft'),
         ('confirmed', 'Chủ dự toán duyệt'),
         ('approved', 'Tài chính duyệt'),
-        ('done', 'Hoàn thành')
-        ],  string='Trạng thái', copy=False, index=True, readonly=True, store=True,
+        ('done', 'Chờ thanh toán')
+        ], default='draft', string='Trạng thái', copy=False, index=True, readonly=True, store=True,
         help="Trạng thái của yêu cầu")
 
     @api.multi
@@ -211,19 +211,24 @@ class QuotationRequest(models.Model):
 
             #Create payment request
             payment = self.env['hr.expense_approval.request_payment'].create({
-                    'name': self.name,
+                    'name': u"Yêu cầu thanh toán - " + self.name,
                     'description': self.name,
                     'date': self.date,
                     'employee_id': self.employee_id.id,
                     'company_id': self.company_id.id,
-                    'total_amount_quotations' : self.amount_vnd,
+                    'amount_vnd' : self.amount_vnd,
+                    'amount': self.amount,
                     'approval_level' : self.approval_level.id,
                     'cost_center_id' : self.cost_center_id.id,
                     'payment_date' : self.payment_date,
                     'quotation_id' : self.id,
-                    'financial_activity' : self.financial_activity.id
-            })
+                    'financial_activity' : self.financial_activity.id,
+                    'beneficiary' : self.beneficiary,
+                    'currency_rate' : self.currency_rate,
+                    'location_id' : self.location_id.id,
+                    'currency_id' : self.currency_id.id,
 
+            })
         #approval account
     
     @api.depends('amount', 'currency_id','currency_rate')

@@ -18,7 +18,8 @@
         'views/hr_expense_approval_payment_views.xml',
         'views/setting_views.xml',
         'views/menu_item.xml',
-        'views/quotation_workflow.xml'
+        'views/quotation_workflow.xml',
+        'views/payment_workflow.xml'
     ],
     #’demo': ['data/hr_expense_demo.xml'],
     'installable': True,

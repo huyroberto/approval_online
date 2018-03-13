@@ -36,10 +36,10 @@
             <field name="arch" type="xml">
 <form string="Quotation Request">
                  <header>
-                    <button name="action_draft" type="object" string="Reset to draft" states="confirmed,approved,done"/>
-                        <button name="action_confirm" type="object" string="Confirm" states="draft" class="oe_highlight"/>
-                         <button name="action_approve" type="object" string="Approve" states="confirmed" class="oe_highlight" />
-                        <button name="action_done" type="object" string="Approve" states="approved" class="oe_highlight"/>
+                    <button name="action_draft" type="object" string="Quay lại draft" states="confirmed,approved,done"/>
+                        <button name="action_confirm" type="object" string="Xác nhận" states="draft" class="oe_highlight"/>
+                        <button name="action_approve" type="object" string="Phê duyệt" states="confirmed" class="oe_highlight" />
+                        <button name="action_done" type="object" string="Phê duyệt" states="approved" class="oe_highlight"/>
                         <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
@@ -116,7 +116,7 @@
                     </group>
                     <hr/>
                     <h2>Phê duyệt tài chính</h2>
-                    <field name="fi_ox_approver_id"/>
+                    <field name="fi_ox_approver_id" attrs="{'invisible':[('state','=','approved')]}"/>
                 </sheet>
                 </form>
             </field>

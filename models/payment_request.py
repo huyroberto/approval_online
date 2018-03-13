@@ -18,64 +18,163 @@ class PaymentRequest(models.Model):
     description = fields.Text(string="Nội dung")
 
      #Ngày đề nghị
-    date = fields.Date(readonly=True, default=fields.Date.context_today, string="Ngày yêu cầu")
+    date = fields.Date(default=fields.Date.context_today, string="Ngày yêu cầu",readonly=True)
     payment_date = fields.Date(default=fields.Date.context_today, string="Ngày đề nghị thanh toán",required=True)
-    financial_activity = fields.Many2one('hr.expense_approval.financial_activity',string="Hoạt động Tài chính",store=True)
-    cost_center_id = fields.Many2one('hr.expense_approval.financial_costcenter_approver',string="Mã dự toán",store=True)
+    financial_activity = fields.Many2one('hr.expense_approval.financial_activity',string="Hoạt động Tài chính",readonly=True,store=True)
+    cost_center_id = fields.Many2one('hr.expense_approval.financial_costcenter_approver',string="Mã dự toán",store=True,readonly=True)
     #Người đề nghị
-    employee_id = fields.Many2one('hr.employee', string="Người yêu cầu", required=True, default=lambda self: self.env['hr.employee'].search([('user_id', '=', self.env.uid)], limit=1))
-    company_id = fields.Many2one('res.company', string='Công ty', readonly=True, default=lambda self: self.env.user.company_id)
-    location_id = fields.Many2one('hr.expense_approval.location', string="Địa điểm",store=True)
-    beneficiary = fields.Char(string="Người/Công ty thụ hưởng")
+    employee_id = fields.Many2one('hr.employee', string="Người yêu cầu",readonly=True)
+    company_id = fields.Many2one('res.company', string='Công ty', readonly=True)
+    location_id = fields.Many2one('hr.expense_approval.location', string="Địa điểm",readonly=True)
+    beneficiary = fields.Char(string="Người/Công ty thụ hưởng",readonly=True)
+
+     #quotation request
+    quotation_id = fields.Many2one('hr.expense_approval.request_quotation',
+                                          string='Đề xuất dự toán')
 
     #BPMS
     avaiable_amount = fields.Float(string = "Số còn khả dụng", compute='_compute_cost_center_amount',readonly=True)
     real_amount = fields.Float(string = "Số còn thực tế", compute='_compute_cost_center_amount', readonly=True)
-    #department_id = fields.Many2one('hr.department', string='Phòng ban', readonly=True)
 
     #Amount
-    total_amount = fields.Float(string='Tổng tiền')#, compute='_compute_totalAmount')
-    # cash_amount = fields.Float(string='Tiền mặt')
-    # bank_amount = fields.Float(string='Ngân hàng')
-    total_amount_text = fields.Char(string="Tổng tiền bằng chữ")
+    #Số tiền
+    currency_id = fields.Many2one('res.currency', string='Tiền tệ thanh toán',readonly=True)
+    amount = fields.Float(string='Tổng tiền', required=True,readonly=True)
+    currency_rate = fields.Float(string="Tỷ giá",required=True,default=1)
+    amount_vnd = fields.Float(string='Tổng tiền (VND)', store=True, compute='_compute_amount_vnd')
+    amount_text = fields.Char(string='Tổng tiền (VND) bằng chữ',readonly=True)
 
-    total_cash_amount = fields.Float(string='Tổng tiền mặt', compute='_compute_totalAmount')
-    total_bank_amount = fields.Float(string='Tổng tiền ngân hàng', compute='_compute_totalAmount')
+    total_line_cash_amount = fields.Float(string='Tổng tiền mặt', compute='_compute_totalAmount')
+    total_line_bank_amount = fields.Float(string='Tổng tiền ngân hàng', compute='_compute_totalAmount')
 
 
     attachment_number = fields.Integer(compute='_compute_attachment_number', string='Số chứng từ')
-    pm_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp PM")
-    td_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp TD")
-    sd_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp SD")
-    ce_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp CE")
-    ceo_approver_id = fields.Many2one('hr.employee', string="Giám đốc")
+    pm_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp PM", readonly=True)
+    td_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp TD", readonly=True)
+    sd_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp SD", readonly=True)
+    ce_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp CE", readonly=True)
+    ceo_approver_id = fields.Many2one('hr.employee', string="Giám đốc", readonly=True)
 
-    fi_ox_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp OX")
-    fi_pm_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp PM")
-    fi_td_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp TD")
-    fi_sd_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp SD")
-    fi_ce_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp CE")
-    fi_cfo_approver_id = fields.Many2one('hr.employee', string="Kế toán trưởng")
+    fi_ox_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp OX", readonly=True)
+    fi_pm_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp PM", readonly=True)
+    fi_td_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp TD", readonly=True)
+    fi_sd_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp SD", readonly=True)
+    fi_ce_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp CE", readonly=True)
+    fi_cfo_approver_id = fields.Many2one('hr.employee', string="Kế toán trưởng", readonly=True)
 
     approval_level = fields.Many2one('hr.expense_approval.level',string='Cấp phê duyệt', store=True)
     approval_next =  fields.Many2one('hr.employee', string="Người phê duyệt tiếp", compute='_compute_cost_center_amount', readonly=True,store=True)
 
-    #quotation request
-    quotation_id = fields.Many2one('hr.expense_approval.request_quotation',
-                                          string='Đề xuất dự toán')
-
-    total_amount_quotations = fields.Float(string='Tong tien du toan')
     #Line
     expense_line_ids = fields.One2many('hr.expense_approval.request_payment.line', 'payment_id', string="Các lịch thanh toán",ondelete="cascade", copy=False)
-    #Status
-    #sheet_id = fields.Many2one('hr.expense.approval.sheet', string="Expense Report", readonly=True, copy=False)
+    
+#Status - BEGIN
     state = fields.Selection([
-        ('draft', 'Submit To Manager'),
+        ('draft', 'Bản drafft'),
         ('confirmed', 'Chủ dự toán duyệt'),
         ('approved', 'Tài chính duyệt'),
         ('done', 'Hoàn thành')
-        ],  string='Trạng thái', copy=False, index=True, readonly=True, store=True,
+        ], default='draft',  string='Trạng thái', copy=False, index=True, readonly=True, store=True,
         help="Status of the request.")
+
+    @api.multi
+    def action_draft(self):
+        self.state = 'draft'
+
+    @api.multi
+    def action_confirm(self):
+        self.state = 'confirmed'
+    
+    @api.multi
+    def action_approve(self):
+        if(self.approval_next.user_id.id != self.env.uid):
+            return 
+            #Đisplay Warning Here - Khong duoc quyen phe duyet
+        else:
+            my_emp_id = int(self.env.uid)
+            my_emp = self.env['hr.employee'].search([('user_id', '=', my_emp_id)])
+            #Lay list approvers cua cost center
+            if(self.pm_approver_id.id is False):
+                self.pm_approver_id = my_emp
+                self.approval_next = self.cost_center_id.td_approver_id
+                return
+            if(self.td_approver_id.id is False):
+                self.td_approver_id = my_emp
+                if(self.approval_level.level == "td"):
+                    self.state = 'approved'
+                    self.approval_next = self.financial_activity.ox_approver_id
+                else:
+                    self.approval_next = self.cost_center_id.sd_approver_id
+                return
+            if(self.sd_approver_id.id is False):
+                self.sd_approver_id = my_emp
+                if(self.approval_level.level == "ce"):
+                    self.state = 'approved'
+                    self.approval_next = self.financial_activity.ox_approver_id
+                else:
+                    self.approval_next = self.cost_center_id.ce_approver_id
+                return
+            if(self.ce_approver_id.id is False):
+                self.ce_approver_id = my_emp
+                self.state = 'approved'         
+                #Chuyen sang tai chinh duyet
+                self.approval_next = self.financial_activity.ox_approver_id
+
+    @api.multi
+    def action_done(self):
+        if(self.approval_next.user_id.id != self.env.uid):
+            return
+            #Đisplay Warning Here - Khong duoc quyen phe duyet
+        else:
+            my_emp_id = int(self.env.uid)
+            my_emp = self.env['hr.employee'].search([('user_id', '=', my_emp_id)])
+            #Lay list approvers cua cost center
+            if(self.fi_pm_approver_id.id is False):
+                self.fi_pm_approver_id = my_emp
+                self.approval_next = self.cost_center_id.td_approver_id
+                return
+            if(self.fi_td_approver_id.id is False):
+                self.fi_td_approver_id = my_emp
+                if(self.approval_level.level == "td"):
+                    self.state = 'done'
+                    self.approval_next = self.financial_activity.ox_approver_id
+                else:
+                    self.approval_next = self.cost_center_id.sd_approver_id
+                return
+            if(self.fi_sd_approver_id.id is False):
+                self.fi_sd_approver_id = my_emp
+                if(self.approval_level.level == "ce"):
+                    self.state = 'done'
+                    self.approval_next = self.financial_activity.ox_approver_id
+                else:
+                    self.approval_next = self.cost_center_id.ce_approver_id
+                return
+            if(self.fi_ce_approver_id.id is False):
+                self.fi_ce_approver_id = my_emp
+                self.state = 'done'         
+    #Status - END
+
+
+    @api.onchange('quotation_id')
+    def _onchange_quotation_id(self):
+        for payment in self:
+            payment.beneficiary = payment.quotation_id.beneficiary
+            payment.cost_center_id = payment.quotation_id.cost_center_id.id
+            payment.payment_date = payment.quotation_id.payment_date
+            payment.employee_id = payment.quotation_id.employee_id.id
+            payment.company_id = payment.quotation_id.company_id.id
+            payment.location_id  = payment.quotation_id.location_id.id
+            payment.name = "Yêu cầu thanh toán - " + payment.quotation_id.name
+            payment.financial_activity = payment.quotation_id.financial_activity.id
+            payment.currency_id = payment.quotation_id.currency_id.id
+            payment.currency_rate = payment.quotation_id.currency_rate
+            payment.amount = payment.quotation_id.amount
+            payment.approval_level= payment.quotation_id.approval_level
+
+    @api.depends('amount', 'currency_id','currency_rate')
+    def _compute_amount_vnd(self):
+        for request in self:
+            request.amount_vnd = request.amount * request.currency_rate
 
     @api.multi
     def action_draft(self):
@@ -99,11 +198,12 @@ class PaymentRequest(models.Model):
         for request in self:
             total_cash = total_bank = 0.0
             for line in request.expense_line_ids:
+                _logger.info('Payment Line - ' + line.name)
                 total_cash += line.cash_amount
                 total_bank += line.bank_amount
             request.update({
-                'total_cash_amount': total_cash,
-                'total_bank_amount': total_bank
+                'total_line_cash_amount': total_cash,
+                'total_line_bank_amount': total_bank
             })
 
     @api.multi
@@ -222,5 +322,6 @@ class PaymentRequestLine(models.Model):
 
     @api.depends('cash_amount', 'bank_amount')
     def _compute_total_amount(self):
-        self.total_amount = self.cash_amount + self.bank_amount
+        for line in self:
+            line.total_amount = line.cash_amount + line.bank_amount
     
