@@ -42,14 +42,14 @@
                         <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
-                    <div class="oe_button_box">
+                    <!-- <div class="oe_button_box">
                         <button name="action_get_attachment_view"
                             class="oe_stat_button"
                             icon="fa-book"
                             type="object">
                             <field name="attachment_number" widget="statinfo" string="Documents"/>
                         </button>
-                    </div>
+                    </div> -->
                     <h2>Thông tin dự toán</h2>
                     <field name="payment_request_id"/>
                     <group>
@@ -83,6 +83,7 @@
                         </group>
                     </group>
                     <group><field name="name"/></group>
+                    <hr/>
                     <group><field name="financial_activity"/></group>
                     <hr/>
                     <h2>Thông tin thanh toán</h2>

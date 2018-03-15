@@ -43,23 +43,13 @@
                         <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
-                    <div class="oe_button_box">
-                        <button name="action_get_attachment_view" class="oe_stat_button" icon="fa-book" type="object">
-                            <field name="attachment_number" widget="statinfo" string="Chứng từ"/>
-                        </button>
-                    </div>
+                    
                     <h2>Thông tin dự toán</h2>
                     <field name="quotation_request_id"/>
                      <group>
                         <group>
                             <field name="cost_center_id"/>
                         </group>
-                    </group>
-                    <group>
-                        <group>
-                            <field name="payment_date"/>
-                        </group>
-                        
                     </group>
                     <group>
                         <group>
@@ -71,6 +61,12 @@
                     </group>
                     <group>
                         <group>
+                            <field name="payment_date"/>
+                        </group>
+                        
+                    </group>
+                    <group>
+                        <group>
                             <field name="company_id"/>
                         </group>
                         <group>
@@ -78,7 +74,21 @@
                         </group>
                     </group>
                     <group><field name="name"/></group>
-                    <group><field name="financial_activity"/></group>
+                    <group><field name="financial_activity"  attrs="{'invisible':['|',('state','=','draft'),('state','=','confirmed')]}"/></group>
+                    <hr/>
+                    <strong>Hồ sơ chứng từ</strong>
+                    <field name="attachments" widget="many2many">
+        <tree>
+            <field name="name"/>
+        </tree>
+        </field>
+        <hr/>       
+            <strong>Biểu mẫu, quy trình</strong>
+                    <field name="template_attachments" widget="many2many">
+        <tree>
+            <field name="name"/>
+        </tree>
+        </field>
                     <hr/>
                     <h2>Thông tin thanh toán</h2>
                     <group>

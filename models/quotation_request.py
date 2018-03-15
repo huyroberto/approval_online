@@ -46,28 +46,41 @@ class QuotationRequest(models.Model):
     avaiable_amount = fields.Float(string = "Số còn khả dụng", compute='_compute_cost_center_amount',readonly=True)
     real_amount = fields.Float(string = "Số còn thực tế", compute='_compute_cost_center_amount', readonly=True)
 
-    attachment_number = fields.Integer(compute='_compute_attachment_number', string='Số chứng từ')
+    #attachment_number = fields.Integer(compute='_compute_attachment_number', string='Số chứng từ')
     
     #Approval
 
-    approval_level = fields.Many2one('hr.expense_approval.level',string='Cấp phê duyệt', compute='_set_approval_level',readonly=True,store=True)
-    approval_next =  fields.Many2one('hr.employee', string="Người phê duyệt tiếp", compute='_compute_cost_center_amount', readonly=True,store=True)
-    approval_list = fields.Char(string = "Danh sách phê duyệt", compute='_set_approval_level',store=True)
+    approval_level = fields.Many2one('hr.expense_approval.level',string='Cấp phê duyệt chủ dự toán', compute='_set_approval_level',readonly=True,store=True)
+    approval_level_next = fields.Selection([
+        ('ox','OX'),
+        ('pm', 'PM'),
+        ('td', 'TD'),
+        ('sd', 'SD'),
+        ('ce', 'CE')
+        ], default='pm', string='Trạng thái',store=True)
+    approval_next =  fields.Many2one('hr.employee', string="Người phê duyệt tiếp theo", compute='_compute_cost_center_amount', readonly=True,store=True)
+    financial_level = fields.Many2one('hr.expense_approval.financial_level',string='Cấp phê duyệt tài chính', compute='_set_financial_level',readonly=True,store=True)
 
-    pm_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp PM", readonly=True,store=True)
-    td_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp TD",readonly=True,store=True)
-    sd_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp SD",readonly=True,store=True)
-    ce_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp CE",readonly=True,store=True)
+    company_financial_approval = fields.Many2one('hr.expense_approval.company_financial_approval')
+    #approval_list = fields.Char(string = "Danh sách phê duyệt", compute='_set_approval_level',store=True)
+
+    pm_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp PM",store=True)
+    td_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp TD",store=True)
+    sd_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp SD",store=True)
+    ce_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp CE",store=True)
     ceo_approver_id = fields.Many2one('hr.employee', string="Giám đốc",readonly=True,store=True)
 
     fi_ox_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp OX")
+    fi_plan_approver_id = fields.Many2one('hr.employee', string="Phê duyệt cấp Kế hoạch")
     
 
     payment_request_id = fields.Char(string="Payment Request")
-	# fields.Many2one('hr.expense_approval.request_payment',
-    #                                    string='Các đề xuất dự toán',
-    #                                    readonly=True,
-    #                                     default=lambda self: self.env['hr.employee'].search([('quotation_request_id', '=', self.quotation_request_id)], limit=1))
+	
+    attachments = fields.Many2many(
+                      comodel_name="ir.attachment", relation="request_quotation_ir_attachment_relation",
+		       column1="quotation_id", column2="attachment_id", string="Hồ sơ, chứng từ")
+    template_attachments = fields.Many2many(
+                      "ir.attachment", string="Biểu mẫu, quy trình",store=False,readonly=True)
 
     state = fields.Selection([
         ('draft', 'Bản draft'),
@@ -100,53 +113,7 @@ class QuotationRequest(models.Model):
     @api.multi
     def action_quotation_send(self):
         return True
-        # '''
-        # This function opens a window to compose an email, with the edi sale template message loaded by default
-        # '''
-        #self.ensure_one()
-        #ir_model_data = self.env['ir.model.data']
-        #try:
-        #    template_id = ir_model_data.get_object_reference('__export__', 'mail_template_16')[1]
-        #except ValueError:
-        #    template_id = False
-        #try:
-        #    compose_form_id = ir_model_data.get_object_reference('mail', 'email_compose_message_wizard_form')[1]
-        #except ValueError:
-        #    compose_form_id = False
-        #ctx = dict()
-        #ctx.update({
-        #    'default_model': 'hr.expense_approval.request_quotation',
-        #    #'default_res_id': self.ids[0],
-        #    'default_use_template': bool(template_id),
-        #    'default_template_id': template_id,
-        #    'default_composition_mode': 'comment',
-        #    'mark_so_as_sent': True
-        #    #,
-        #    #'custom_layout': "sale.mail_template_data_notification_email_sale_order"
-        #})
-        #return {
-        #    'type': 'ir.actions.act_window',
-        #    'view_type': 'form',
-        #    'view_mode': 'form',
-        #    'res_model': 'mail.compose.message',
-        #    'views': [(compose_form_id, 'form')],
-        #    'view_id': compose_form_id,
-        #    'target': 'new',
-        #   'context': ctx,
-        #}
-
-    
-    #@api.multi
-    #def force_quotation_send(self):
-        # for quotation in self:
-        #     email_act = quotation.action_quotation_send()
-        #     if email_act and email_act.get('context'):
-        #         email_ctx = email_act['context']
-        #         email_ctx.update(default_email_from=order.company_id.email)
-        #         order.with_context(email_ctx).message_post_with_template(email_ctx.get('default_template_id'))
-    #    return True
-
-
+        
     @api.multi
     def action_approve(self):
         _logger.info('Approve now')
@@ -171,14 +138,17 @@ class QuotationRequest(models.Model):
                 _logger.info('Set PM Approver')
                 self.pm_approver_id = my_emp
                 self.approval_next = self.cost_center_id.td_approver_id
+                self.approval_level_next = 'td'
                 return
             if(self.td_approver_id.id is False):
                 _logger.info('Set TD Approver')
                 self.td_approver_id = my_emp
                 if(self.approval_level.level == "td"):
                     self.state = 'approved'
-                    self.approval_next = self.financial_activity.ox_approver_id
+                    self.approval_next = self.company_financial_approval.ox_approver_id
+                    self.approval_level_next = 'ox'
                 else:
+                    self.approval_level_next = 'sd'
                     self.approval_next = self.cost_center_id.sd_approver_id
                 return
             if(self.sd_approver_id.id is False):
@@ -186,8 +156,10 @@ class QuotationRequest(models.Model):
                 self.sd_approver_id = my_emp
                 if(self.approval_level.level == "ce"):
                     self.state = 'approved'
-                    self.approval_next = self.financial_activity.ox_approver_id
+                    self.approval_next = self.company_financial_approval.ox_approver_id
+                    self.approval_level_next = 'ox'
                 else:
+                    self.approval_level_next = 'ce'
                     self.approval_next = self.cost_center_id.ce_approver_id
                 return
             if(self.ce_approver_id.id is False):
@@ -195,7 +167,8 @@ class QuotationRequest(models.Model):
                 self.ce_approver_id = my_emp
                 self.state = 'approved'         
                 #Chuyen sang tai chinh duyet
-                self.approval_next = self.financial_activity.ox_approver_id
+                self.approval_next = self.company_financial_approval.ox_approver_id
+                self.approval_level_next = 'ox'
         #approval PM,TD,SD,CE,CEO,
         
     @api.multi
@@ -242,37 +215,30 @@ class QuotationRequest(models.Model):
          for request_quotation in self:
             list_level = self.env['hr.expense_approval.level'].search([])
             for level in list_level:
-                #_logger.info('Level: ' + level.name + "-" + str(level.from_amount) + " - " + str(level.to_amount))
                 if(level.from_amount < request_quotation.amount_vnd and (level.to_amount == 0 or level.to_amount >= request_quotation.amount_vnd)):
                     request_quotation.approval_level = level
-                    #Tinh lai list approval
-                    approval_list = ""
-                    _logger.info('Level Selection: ' + str(level.level))
-                    if(level.level == "td"):
-                        approval_list = str(request_quotation.cost_center_id.pm_approver_id.id) + "|" + str(request_quotation.cost_center_id.td_approver_id.id)
-                    if(level.level == "sd"):
-                        approval_list = str(request_quotation.cost_center_id.pm_approver_id.id) + "|" + str(request_quotation.cost_center_id.td_approver_id.id) + "|" + str(request_quotation.cost_center_id.sd_approver_id.id)
-                    if(level.level == "ce"):
-                        approval_list = str(request_quotation.cost_center_id.pm_approver_id.id) + "|" + str(request_quotation.cost_center_id.td_approver_id.id) + "|" + str(request_quotation.cost_center_id.sd_approver_id.id)   + "|" + str(request_quotation.cost_center_id.ce_approver_id.id)
-                    request_quotation.approval_list = approval_list
-                    _logger.info("Approval List: " + approval_list)
+            list_financial_level = self.env['hr.expense_approval.financial_level'].search([])
+            for level in list_financial_level:
+                if(level.from_amount < request_quotation.amount_vnd and (level.to_amount == 0 or level.to_amount >= request_quotation.amount_vnd)):
+                    request_quotation.financial_level = level
 
-    @api.multi
-    def _compute_attachment_number(self):
-        attachment_data = self.env['ir.attachment'].read_group([('res_model', '=', 'hr.expense_approval.request_quotation'), ('res_id', 'in', self.ids)], ['res_id'], ['res_id'])
-        attachment = dict((data['res_id'], data['res_id_count']) for data in attachment_data)
-        for request_quotation in self:
-            request_quotation.attachment_number = attachment.get(request_quotation.id, 0)
+    # @api.multi
+    # def _compute_attachment_number(self):
+    #     attachment_data = self.env['ir.attachment'].read_group([('res_model', '=', 'hr.expense_approval.request_quotation'), ('res_id', 'in', self.ids)], ['res_id'], ['res_id'])
+    #     attachment = dict((data['res_id'], data['res_id_count']) for data in attachment_data)
+    #     for request_quotation in self:
+    #         request_quotation.attachment_number = attachment.get(request_quotation.id, 0)
     
-    @api.multi
-    def action_get_attachment_view(self):
-        self.ensure_one()
-        res = self.env['ir.actions.act_window'].for_xml_id('base', 'action_attachment')
-        res['domain'] = [('res_model', '=', 'hr.expense_approval.request_quotation'), ('res_id', 'in', self.ids)]
-        res['context'] = {'default_res_model': 'hr.expense_approval.request_quotation', 'default_res_id': self.id}
-        return res
+    # @api.multi
+    # def action_get_attachment_view(self):
+    #     self.ensure_one()
+    #     res = self.env['ir.actions.act_window'].for_xml_id('base', 'action_attachment')
+    #     res['domain'] = [('res_model', '=', 'hr.expense_approval.request_quotation'), ('res_id', 'in', self.ids)]
+    #     res['context'] = {'default_res_model': 'hr.expense_approval.request_quotation', 'default_res_id': self.id}
+    #     return res
     
     def _onchange_financial_activity(self):
+        self.template_attachments = self.financial_activity.attachments
         self.name = self.cost_center_id.name + " - " + self.financial_activity.name
 
     #@api.onchange('cost_center_id')
@@ -289,6 +255,7 @@ class QuotationRequest(models.Model):
                 
                 if(request_quotation.td_approver_id and (request_quotation.approval_level.level == "sd" or request_quotation.approval_level.level == "ce")):
                     request_quotation.approval_next = request_quotation.cost_center_id.sd_approver_id
+
                 
                 if(request_quotation.sd_approver_id and (request_quotation.approval_level.level == "ce")):
                     request_quotation.approval_next = request_quotation.cost_center_id.ce_approver_id

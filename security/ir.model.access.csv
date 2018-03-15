@@ -2,7 +2,7 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_hr_expense_approval_quotation_employee,hr.expense_approval.quotation.user,model_hr_expense_approval_request_quotation,base.group_user,1,1,1,1
 access_hr_expense_approval_payment_employee,hr.expense_approval.payment.user,model_hr_expense_approval_request_payment,base.group_user,1,1,1,1
 access_hr_expense_approval_payment_line_employee,hr.expense_approval.payment.line.user,model_hr_expense_approval_request_payment_line,base.group_user,1,1,1,1
-access_hr_expense_approval_location_admin,hr.expense_approval.locationadmin,model_hr_expense_approval_location,base.group_user,1,1,1,1
+access_hr_expense_approval_location_admin,hr.expense_approval.location.admin,model_hr_expense_approval_location,base.group_user,1,1,1,1
 access_hr_expense_approval_costcenter_admin,hr.expense_approval.costcenter.admin,model_hr_expense_approval_financial_costcenter_approver,base.group_user,1,1,1,1
 access_hr_expense_approval_activity_admin,hr.expense_approval.activity.admin,model_hr_expense_approval_financial_activity,base.group_user,1,1,1,1
 access_hr_expense_approval_level_admin,hr.expense_approval.level.admin,model_hr_expense_approval_level,base.group_user,1,1,1,1

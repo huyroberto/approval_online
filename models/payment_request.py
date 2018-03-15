@@ -22,6 +22,7 @@ class PaymentRequest(models.Model):
     payment_date = fields.Date(default=fields.Date.context_today, string="Ngày đề nghị thanh toán",required=True)
     financial_activity = fields.Many2one('hr.expense_approval.financial_activity',string="Hoạt động Tài chính",readonly=True,store=True)
     cost_center_id = fields.Many2one('hr.expense_approval.financial_costcenter_approver',string="Mã dự toán",store=True,readonly=True)
+    company_financial_approval = fields.Many2one('hr.expense_approval.company_financial_approval')
     #Người đề nghị
     employee_id = fields.Many2one('hr.employee', string="Người yêu cầu",readonly=True)
     company_id = fields.Many2one('res.company', string='Công ty', readonly=True)
@@ -102,7 +103,7 @@ class PaymentRequest(models.Model):
                 self.td_approver_id = my_emp
                 if(self.approval_level.level == "td"):
                     self.state = 'approved'
-                    self.approval_next = self.financial_activity.ox_approver_id
+                    self.approval_next = self.company_financial_approval.ox_approver_id
                 else:
                     self.approval_next = self.cost_center_id.sd_approver_id
                 return
@@ -110,7 +111,7 @@ class PaymentRequest(models.Model):
                 self.sd_approver_id = my_emp
                 if(self.approval_level.level == "ce"):
                     self.state = 'approved'
-                    self.approval_next = self.financial_activity.ox_approver_id
+                    self.approval_next = self.company_financial_approval.ox_approver_id
                 else:
                     self.approval_next = self.cost_center_id.ce_approver_id
                 return
@@ -118,7 +119,7 @@ class PaymentRequest(models.Model):
                 self.ce_approver_id = my_emp
                 self.state = 'approved'         
                 #Chuyen sang tai chinh duyet
-                self.approval_next = self.financial_activity.ox_approver_id
+                self.approval_next = self.company_financial_approval.ox_approver_id
 
     @api.multi
     def action_done(self):
@@ -131,23 +132,23 @@ class PaymentRequest(models.Model):
             #Lay list approvers cua cost center
             if(self.fi_pm_approver_id.id is False):
                 self.fi_pm_approver_id = my_emp
-                self.approval_next = self.cost_center_id.td_approver_id
+                self.approval_next = self.company_financial_approval.td_approver_id
                 return
             if(self.fi_td_approver_id.id is False):
                 self.fi_td_approver_id = my_emp
                 if(self.approval_level.level == "td"):
                     self.state = 'done'
-                    self.approval_next = self.financial_activity.ox_approver_id
+                    #self.approval_next = self.company_financial_approval.ox_approver_id
                 else:
-                    self.approval_next = self.cost_center_id.sd_approver_id
+                    self.approval_next = self.company_financial_approval.sd_approver_id
                 return
             if(self.fi_sd_approver_id.id is False):
                 self.fi_sd_approver_id = my_emp
                 if(self.approval_level.level == "ce"):
                     self.state = 'done'
-                    self.approval_next = self.financial_activity.ox_approver_id
+                    #self.approval_next = self.company_financial_approval.ox_approver_id
                 else:
-                    self.approval_next = self.cost_center_id.ce_approver_id
+                    self.approval_next = self.company_financial_approval.ce_approver_id
                 return
             if(self.fi_ce_approver_id.id is False):
                 self.fi_ce_approver_id = my_emp
@@ -169,7 +170,8 @@ class PaymentRequest(models.Model):
             payment.currency_id = payment.quotation_id.currency_id.id
             payment.currency_rate = payment.quotation_id.currency_rate
             payment.amount = payment.quotation_id.amount
-            payment.approval_level= payment.quotation_id.approval_level
+            payment.approval_level= payment.quotation_id.approval_level.id
+            payment.company_financial_approval = payment.quotation_id.company_financial_approval.id
 
     @api.depends('amount', 'currency_id','currency_rate')
     def _compute_amount_vnd(self):

@@ -14,7 +14,9 @@
   <!-- Menu Settings -->
   <menuitem name="Cấu hình" id="menu_hr_expense_approval_settings" parent="menu_hr_expense_approval_root" groups="base.group_user"/>
   <menuitem name="Danh mục hoạt đông" id="menu_hr_expense_approval_settings_financial_activity" parent="menu_hr_expense_approval_settings" action="action_settings_activity" />
-  <menuitem name="Mức phê duyệt" id="menu_hr_expense_approval_settings_level" parent="menu_hr_expense_approval_settings" action="action_settings_level" />
+  <menuitem name="Mức phê duyệt Chủ dự toán" id="menu_hr_expense_approval_settings_level" parent="menu_hr_expense_approval_settings" action="action_settings_level" />
   <menuitem name="Danh mục mã dự toán" id="menu_hr_expense_approval_settings_financial_costcenter" parent="menu_hr_expense_approval_settings" action="action_settings_costcenter" />
   <menuitem name="Địa điểm hoạt động" id="menu_hr_expense_approval_settings_location" parent="menu_hr_expense_approval_settings" action="action_settings_location" />
+  <menuitem name="Mức phê duyệt Tài chính" id="menu_hr_expense_approval_settings_financial_level" parent="menu_hr_expense_approval_settings" action="action_settings_financial_level" />
+  <menuitem name="Phê duyệt tài chính" id="menu_hr_expense_approval_settings_company_financial_approval" parent="menu_hr_expense_approval_settings" action="action_settings_company_financial_approval" />
   </odoo>
