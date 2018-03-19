@@ -102,7 +102,15 @@ class QuotationRequest(models.Model):
         #template mail: hr_
 
         #Trangnt_ send mail for approval
+
+        # Find the e-mail template
+        #template = self.env.ref('mail_template_demo.example_email_template')
     
+        template = self.env['ir.model.data'].get_object('mail_template_demo', 'example_email_template')
+
+        # Send out the e-mail template to the user
+        self.env['mail.template'].browse(template.id).send_mail(self.id)
+                                                
         #if self.env.context.get('send_email'):
         #
         #self.force_quotation_send()
@@ -111,7 +119,13 @@ class QuotationRequest(models.Model):
         #    self.action_done()
         
     @api.multi
-    def action_quotation_send(self):
+    def action_quotation_send(self, rec_id):
+    
+        template = self.env['ir.model.data'].get_object('mail_template_demo', 'example_email_template')
+
+        # Send out the e-mail template to the user
+        self.env['mail.template'].browse(template.id).send_mail(rec_id)
+        
         return True
         
     @api.multi
@@ -133,6 +147,9 @@ class QuotationRequest(models.Model):
             my_emp = self.env['hr.employee'].search([('user_id', '=', my_emp_id)])
             _logger.info('My Employee ' + str(my_emp))
             _logger.info('PM Approver ' + str(self.pm_approver_id.id))
+            #Trangnt: send mail for quotation
+            self.acction_quotation_send()
+            
             #Lay list approvers cua cost center
             if(self.pm_approver_id.id is False):
                 _logger.info('Set PM Approver')
