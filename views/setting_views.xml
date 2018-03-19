@@ -1,189 +1,290 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="view_settings_activity_tree" model="ir.ui.view">
-            <field name="name">Hoạt động Tài chính</field>
-            <field name="model">hr.expense_approval.financial_activity</field>
-            <field name="arch" type="xml">
-                <tree string="Hoạt động Tài chính">
-                    <field name="name"/>
-                   <field name="status"/>
-                </tree>
-            </field>
-        </record>
-  <record id="action_settings_activity" model="ir.actions.act_window">
-            <field name="name">Hoạt động Tài chính</field>
-            <field name="res_model">hr.expense_approval.financial_activity</field>
-            <field name="view_type">form</field>
-            <field name="view_mode">tree,kanban,form,pivot,graph</field>
-            <field name="view_id" ref="view_settings_activity_tree"/>
-            <field name="domain">[]</field>
-            <field name="help" type="html">
-              <p>
-                
-              </p>
-            </field>
-        </record> 
+        <field name="name">Hoạt động Tài chính</field>
+        <field name="model">hr.expense_approval.financial_activity</field>
+        <field name="arch" type="xml">
+            <tree string="Hoạt động Tài chính">
+                <field name="name"/>
+                <field name="status"/>
+            </tree>
+        </field>
+    </record>
+    <record id="action_settings_activity" model="ir.actions.act_window">
+        <field name="name">Hoạt động Tài chính</field>
+        <field name="res_model">hr.expense_approval.financial_activity</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,kanban,form,pivot,graph</field>
+        <field name="view_id" ref="view_settings_activity_tree"/>
+        <field name="domain">[]</field>
+       
+    </record> 
 
-<record id="view_settings_activity_form_view" model="ir.ui.view">
-            <field name="name">Hoạt động tài chính</field>
-            <field name="model">hr.expense_approval.financial_activity</field>
-            <field eval="25" name="priority"/>
-            <field name="arch" type="xml">
-                <form string="Hoạt động">
+    <record id="view_settings_activity_form_view" model="ir.ui.view">
+        <field name="name">Hoạt động tài chính</field>
+        <field name="model">hr.expense_approval.financial_activity</field>
+        <field eval="25" name="priority"/>
+        <field name="arch" type="xml">
+            <form string="Hoạt động">
                 <sheet>
-                     <div>
-                        <label for="name"/>
-                        <h2>
-                            <field name="name"/>
-                        </h2>
-                    </div>
-                    <div>
-                        <label for="description"/>
-                        <h3>
-                            <field name="description" placeholder="Mô tả"/>
-                        </h3>
-                    </div>
+                    <group>
+                        <field name = 'name'/>
+                    </group>
+                    <group>
+                        <field name="description" placeholder="Mô tả"/>
+                    </group>
                     <hr/>
-                    <field name="attachments" widget="many2many">
-        <tree>
-            <field name="name"/>
-        </tree>
-    </field>
-                     <hr/>
-                     <strong>Bút toán hạch toán</strong>
-                    <field name="payent_lines" nolabel="1" widget="many2many">
-                            <tree>
-                                <field name="description"/>
-                                <field name="credit_account"/>
-                                <field name="debit_account"/>
-                                <field name="payment_time"/>
-                           </tree>
+                    <strong>Các bút toán hạch toán</strong>
+                    <field name="payment_lines" mode="tree,kanban">
+                        <tree editable='bottom'>
+                            <field name="name"/>
+                            <field name="credit_account"/>
+                            <field name="debit_account"/>
+                             <field name="payment_time"/>
+                        </tree>
+                    </field>
+                    <hr/>
+                    <strong>Các biểu mẫu quy trình</strong>
+                    <field name="documents"  mode="tree,kanban">
+                        <tree editable='bottom'>
+                            <field name="name"/>
+                            <field name="link"/>
+                            <field name="required"/>
+                        </tree>
                     </field>
                     <hr/>
                     <group>
-                            <group>
-                                <field name="status"/>
-                            </group>
-                            </group>   
+                        <field name="status"/>
+                    </group>
                 </sheet>
-                </form>
-            </field>
-        </record>
-
-        <record id="view_hr_expense_approval_financial_activity_payment_form_view" model="ir.ui.view">
-            <field name="name">hr.expense_approval.financial_activity_payment.form</field>
-            <field name="model">hr.expense_approval.financial_activity_payment</field>
-            <field eval="25" name="priority"/>
-            <field name="arch" type="xml">
-                <form string="Bút toán hạch toán">
+            </form>
+        </field>
+    </record>
+    <record id="view_hr_expense_approval_financial_activity_payment_form_view" model="ir.ui.view">
+        <field name="name">hr.expense_approval.financial_activity_payment.form</field>
+        <field name="model">hr.expense_approval.financial_activity_payment</field>
+        <field eval="25" name="priority"/>
+        <field name="arch" type="xml">
+            <form string="Bút toán hạch toán">
                 <sheet>
-
-                    <group>
+                    <group><field name="name"/></group>
                         <group>
-                            <field name="description"/>
-                        </group>
-                        <group>
-                            <field name="payment_time"/>
-                        </group>
-                    </group>  
-                    <group>
-                        <group>
-                            <field name="credit_account"/>
-                        </group>
-                        <group>
-                            <field name="debit_account"/>
-                        </group>
-                    </group>                  
+                            <group>
+                                <field name="credit_account"/>
+                            </group>
+                            <group>
+                                <field name="debit_account"/>
+                            </group>
+                            <group><field name="payment_time"/></group>
+                        </group>                  
                     
-                    </sheet>
-                </form>
-                </field>
-                </record>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    
+    <record id="view_settings_activity_payment_tree" model="ir.ui.view">
+        <field name="name">Bút toán hạch toán</field>
+        <field name="model">hr.expense_approval.financial_activity_payment</field>
+        <field name="arch" type="xml">
+            <tree string="Bút toán hạch toán">
+                <field name='financial_activity'/>
+                <field name="name"/>
+                <field name="credit_account"/>
+                <field name="debit_account"/>
+                <field name="payment_time"/>
+            </tree>
+        </field>
+    </record>
+    
+    <record id="action_settings_activity_payment" model="ir.actions.act_window">
+        <field name="name">Bút toán hạch toán</field>
+        <field name="res_model">hr.expense_approval.financial_activity_payment</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,kanban,form,pivot,graph</field>
+        <field name="view_id" ref="view_settings_activity_payment_tree"/>
+        <field name="domain">[]</field>
+       
+    </record> 
 
-<record id="view_settings_costcenter_tree" model="ir.ui.view">
-            <field name="name">Mã dự toán</field>
-            <field name="model">hr.expense_approval.financial_costcenter_approver</field>
-            <field name="arch" type="xml">
-                <tree string="Mã dự toán">
-                    <field name="name"/>
-                    <field name="pm_approver_id"/>
-                    <field name="td_approver_id"/>
-                    <field name="sd_approver_id"/>
-                    <field name="ce_approver_id"/>
-                    <field name="ceo_approver_id"/>
-                </tree>
-            </field>
-        </record>
-  <record id="action_settings_costcenter" model="ir.actions.act_window">
-            <field name="name">Mã dự toán</field>
-            <field name="res_model">hr.expense_approval.financial_costcenter_approver</field>
+
+    <record id="view_hr_expense_approval_financial_activity_document_form_view" model="ir.ui.view">
+        <field name="name">hr.expense_approval.financial_activity_document.form</field>
+        <field name="model">hr.expense_approval.financial_activity_document</field>
+        <field eval="25" name="priority"/>
+        <field name="arch" type="xml">
+            <form string="Tài liệu, chứng từ" >
+                <sheet>
+                    <group><field name="name"/>                </group>
+                    <group><field name="link" widget='url'/></group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    
+    <record id="view_settings_activity_document_tree" model="ir.ui.view">
+        <field name="name">Tài liệu, chứng từ</field>
+        <field name="model">hr.expense_approval.financial_activity_document</field>
+        <field name="arch" type="xml">
+            <tree string="Tài liệu, chứng từ">
+                <field name='financial_activity'/>
+                <field name="name"/> 
+                <field name='link' widget='url'/>               
+            </tree>
+        </field>
+    </record>
+    
+    <record id="action_settings_activity_document" model="ir.actions.act_window">
+            <field name="name">Tài liệu, chứng từ</field>
+            <field name="res_model">hr.expense_approval.financial_activity_document</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,kanban,form,pivot,graph</field>
+            <field name="view_id" ref="view_settings_activity_document_tree"/>
+            <field name="domain">[]</field>
+           
+    </record> 
+    <record id="view_settings_costcenter_tree" model="ir.ui.view">
+        <field name="name">Thông tin chủ dự toán</field>
+        <field name="model">hr.expense_approval.cost_center</field>
+        <field name="arch" type="xml">
+            <tree string="Mã dự toán">
+                <field name="name"/>
+                <field name="td"/>
+                <field name="sd"/>
+                <field name="ce"/>
+                <field name="ceo"/>
+            </tree>
+        </field>
+    </record>
+    <record id="action_settings_costcenter" model="ir.actions.act_window">
+            <field name="name">Thông tin chủ dự toán</field>
+            <field name="res_model">hr.expense_approval.cost_center</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,kanban,form,pivot,graph</field>
             <field name="view_id" ref="view_settings_costcenter_tree"/>
             <field name="domain">[]</field>
-            <field name="help" type="html">
-              <p>
-                
-              </p>
-            </field>
+           
         </record> 
 
-<record id="view_settings_costcenter_form_view" model="ir.ui.view">
-            <field name="name">Hoạt động tài chính</field>
-            <field name="model">hr.expense_approval.financial_costcenter_approver</field>
+        <record id="view_settings_costcenter_form_view" model="ir.ui.view">
+            <field name="name">Thông tin chủ dự toán</field>
+            <field name="model">hr.expense_approval.cost_center</field>
             <field eval="25" name="priority"/>
             <field name="arch" type="xml">
-                <form string="Hoạt động">
+                <form string="Thông tin chủ dự toán">
                 <sheet>
-                     <div>
-                        <label for="name"/>
-                        <h2>
-                            <field name="name"/>
-                        </h2>
-                    </div>
                     <group>
                         <group>
-                            <field name="pm_approver_id"/>
-                            <field name="td_approver_id"/>
-                            <field name="sd_approver_id"/>
+                            <field name='name'/>
+                        </group>
+                    </group>
+                    <strong>Quản lý</strong>
+                    <group>
+                        <group>
+                            <field name="td"/>
+                            <field name="sd"/>
                         </group>
                         <group>
-                            <field name="ce_approver_id"/>
-                            <field name="ceo_approver_id"/>
+                            <field name="ce"/>
+                            <field name="ceo"/>
                         </group>
-                    </group>  
+                    </group>
+                    <strong>Danh sách mã dự toán</strong>
+                    <field name='codes'  mode="tree,kanban">
+                        <tree editable='bottom'>                            
+                            <!-- <field name="cost_center"/> -->
+                            <field name="name"/> 
+                            <field name='description'/>
+                        </tree>
+                    </field>  
                 </sheet>
                 </form>
             </field>
         </record>
 
-<record id="view_settings_approval_level_tree" model="ir.ui.view">
-            <field name="name">Mức phê duyệt</field>
-            <field name="model">hr.expense_approval.level</field>
+    <!-- Mã dự toán -->
+        <record id="view_hr_expense_approval_costcenter_code_form_view" model="ir.ui.view">
+            <field name="name">hr.expense_approval.cost_center_code.form</field>
+            <field name="model">hr.expense_approval.cost_center_code</field>
+            <field eval="25" name="priority"/>
             <field name="arch" type="xml">
-                <tree string="Hạn mức phê duyệt">
-                    <!-- <field name="name"/> -->
-                    <field name="from_amount"/>
-                    <field name="to_amount"/>
-                   <field name="level"/>
+                <form string="Mã dự toán">
+                    <sheet>
+                        <group>
+                        <group><field name="cost_center"/></group>
+                        <group><field name="name"/></group>
+                        </group>
+                        <group>
+                            <field name='description'/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="view_settings_costcenter_code_tree" model="ir.ui.view">
+            <field name="name">Mã dự toán</field>
+            <field name="model">hr.expense_approval.cost_center_code</field>
+            <field name="arch" type="xml">
+                <tree string="Mã dự toán">
+                    <field name="cost_center"/>
+                    <field name="name"/> 
                 </tree>
             </field>
         </record>
-  <record id="action_settings_level" model="ir.actions.act_window">
-            <field name="name">Mức phê duyệt</field>
-            <field name="res_model">hr.expense_approval.level</field>
+        <record id="action_settings_costcenter_code" model="ir.actions.act_window">
+            <field name="name">Mã dự toán</field>
+            <field name="res_model">hr.expense_approval.cost_center_code</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,kanban,form,pivot,graph</field>
-            <field name="view_id" ref="view_settings_approval_level_tree"/>
+            <field name="view_id" ref="view_settings_costcenter_code_tree"/>
             <field name="domain">[]</field>
-            <field name="help" type="html">
-              <p>
-                
-              </p>
-            </field>
         </record> 
 
-<record id="view_settings_approval_location_tree" model="ir.ui.view">
+<!-- MỨC PHÊ DUYỆT CHỦ DỰ TOÁN -->
+        <record id="view_settings_approval_cost_center_level_tree" model="ir.ui.view">
+            <field name="name">Mức phê duyệt</field>
+            <field name="model">hr.expense_approval.cost_center_level</field>
+            <field name="arch" type="xml">
+                <tree string="Hạn mức phê duyệt">
+                    <field name="from_amount"/>
+                    <field name="to_amount"/>
+                    <field name="level"/>
+                </tree>
+            </field>
+        </record>
+        <record id="action_settings_cost_center_level" model="ir.actions.act_window">
+            <field name="name">Mức phê duyệt</field>
+            <field name="res_model">hr.expense_approval.cost_center_level</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,kanban,form,pivot,graph</field>
+            <field name="view_id" ref="view_settings_approval_cost_center_level_tree"/>
+            <field name="domain">[]</field>
+           
+        </record> 
+        <record id="view_hr_expense_approval_cost_center_level_form_view" model="ir.ui.view">
+            <field name="name">hr.expense_approval.cost_center_level.form</field>
+            <field name="model">hr.expense_approval.cost_center_level</field>
+            <field eval="25" name="priority"/>
+            <field name="arch" type="xml">
+                <form string="Mức phê duyệt">
+                    <sheet>
+                        <group>
+                            <group><field name="from_amount"/>
+                            </group>
+                            <group><field name="to_amount"/>
+                            </group>
+                            <group><field name="level"/>  
+                            </group>
+                        </group>
+                        
+                                      
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        
+<!-- ĐỊA ĐIỂM HOẠT ĐỘNG -->
+        <record id="view_settings_approval_location_tree" model="ir.ui.view">
             <field name="name">Địa điểm</field>
             <field name="model">hr.expense_approval.location</field>
             <field name="arch" type="xml">
@@ -192,21 +293,17 @@
                 </tree>
             </field>
         </record>
-  <record id="action_settings_location" model="ir.actions.act_window">
+        <record id="action_settings_location" model="ir.actions.act_window">
             <field name="name">Địa điểm</field>
             <field name="res_model">hr.expense_approval.location</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,kanban,form,pivot,graph</field>
             <field name="view_id" ref="view_settings_approval_location_tree"/>
             <field name="domain">[]</field>
-            <field name="help" type="html">
-              <p>
-                
-              </p>
-            </field>
+            
         </record> 
 
-<record id="view_settings_location_form_view" model="ir.ui.view">
+        <record id="view_settings_location_form_view" model="ir.ui.view">
             <field name="name">Địa điểm</field>
             <field name="model">hr.expense_approval.location</field>
             <field eval="25" name="priority"/>
@@ -220,82 +317,99 @@
                 </form>
             </field>
         </record>
-<!-- hr.expense_approval.company_financial_approval -->
-<record id="view_settings_company_financial_approval_form" model="ir.ui.view">
-            <field name="model">hr.expense_approval.company_financial_approval</field>
+
+<!-- CẤU HÌNH CÔNG TY -->
+        <record id="view_settings_company_form" model="ir.ui.view">
+            <field name="model">hr.expense_approval.company</field>
             <field name="arch" type="xml">
                 <form string="Phê duyệt tài chính">
                 <sheet>
                      <group>
-                        <field name='company_id'/>
+                        <field name='company'/>
                      </group>
                     <group>
                         <group>
-                            <field name="pm_approver_id"/>
-                            <field name="td_approver_id"/>
-                            <field name="sd_approver_id"/>
+                            <field name="pm"/>
+                            <field name="td"/>
+                            <field name="sd"/>
                         </group>
                         <group>
-                            <field name="ce_approver_id"/>
-                            <field name="plan_approver_id"/>
+                            <field name="ce"/>
+                            <field name="plan"/>
                         </group>
-                    </group>  
+                    </group>
+                    <field name='approval_levels'  mode="tree,kanban">
+                        <tree string="Hạn mức phê duyệt" editable='bottom'>
+                            <field name="from_amount"/>
+                            <field name="to_amount"/>
+                            <field name="level"/>
+                        </tree>
+                    </field>
                 </sheet>
                 </form>
             </field>
         </record>
-    <record id="view_settings_company_financial_approval_tree" model="ir.ui.view">
+        <record id="view_settings_company_tree" model="ir.ui.view">
             <field name="name">Phê duyệt Tài chính</field>
-            <field name="model">hr.expense_approval.company_financial_approval</field>
+            <field name="model">hr.expense_approval.company</field>
             <field name="arch" type="xml">
                 <tree string="Phê duyệt tài chính">
-                    <field name="company_id"/>
-                    <field name="pm_approver_id"/>
-                    <field name="td_approver_id"/>
-                    <field name="sd_approver_id"/>
-                    <field name="ce_approver_id"/>
-                    <field name="plan_approver_id"/>
+                    <field name="company"/>
+                    <field name="pm"/>
+                    <field name="td"/>
+                    <field name="sd"/>
+                    <field name="ce"/>
+                    <field name="plan"/>
                 </tree>
             </field>
         </record>
-  <record id="action_settings_company_financial_approval" model="ir.actions.act_window">
+        
+        <record id="action_settings_company" model="ir.actions.act_window">
             <field name="name">Phê duyệt tài chính</field>
-            <field name="res_model">hr.expense_approval.company_financial_approval</field>
+            <field name="res_model">hr.expense_approval.company</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,kanban,form,pivot,graph</field>
-            <field name="view_id" ref="view_settings_company_financial_approval_tree"/>
+            <field name="view_id" ref="view_settings_company_tree"/>
             <field name="domain">[]</field>
-            <field name="help" type="html">
-              <p>
-                
-              </p>
-            </field>
+           
         </record> 
-
-<!-- financial_level -->
-         <record id="view_settings_financial_level_tree" model="ir.ui.view">
-            <field name="name">Mức phê duyệt Tài chính</field>
-            <field name="model">hr.expense_approval.financial_level</field>
+        <record id="view_settings_approval_company_level_tree" model="ir.ui.view">
+            <field name="name">Mức phê duyệt</field>
+            <field name="model">hr.expense_approval.company_level</field>
             <field name="arch" type="xml">
                 <tree string="Hạn mức phê duyệt">
-                    <!-- <field name="name"/> -->
                     <field name="from_amount"/>
                     <field name="to_amount"/>
-                   <field name="level"/>
+                    <field name="level"/>
                 </tree>
             </field>
         </record>
-  <record id="action_settings_financial_level" model="ir.actions.act_window">
-            <field name="name">Mức phê duyệt Tài chính</field>
-            <field name="res_model">hr.expense_approval.financial_level</field>
+        <record id="action_settings_company_level" model="ir.actions.act_window">
+            <field name="name">Mức phê duyệt</field>
+            <field name="res_model">hr.expense_approval.company_level</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,kanban,form,pivot,graph</field>
-            <field name="view_id" ref="view_settings_financial_level_tree"/>
+            <field name="view_id" ref="view_settings_approval_company_level_tree"/>
             <field name="domain">[]</field>
-            <field name="help" type="html">
-              <p>
-                
-              </p>
-            </field>
+           
         </record> 
+        <record id="view_hr_expense_approval_company_level_form_view" model="ir.ui.view">
+            <field name="name">hr.expense_approval.company_level.form</field>
+            <field name="model">hr.expense_approval.company_level</field>
+            <field eval="25" name="priority"/>
+            <field name="arch" type="xml">
+                <form string="Mã dự toán">
+                    <sheet>
+                        <group>
+                            <group><field name="from_amount"/>
+                            </group>
+                            <group><field name="to_amount"/>
+                            </group>
+                            <group><field name="level"/> 
+                            </group>
+                        </group>    
+                    </sheet>
+                </form>
+            </field>
+        </record>
 </odoo>

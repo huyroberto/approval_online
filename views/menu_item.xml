@@ -1,22 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-<menuitem name="Duyệt chi Online" id="menu_hr_expense_approval_root" action="" groups="base.group_user" sequence="500" web_icon="hr_expense,static/description/icon.png"/>
-  <menuitem name="Đề xuất dự toán" id="menu_hr_expense_approval_quotation_root" groups="base.group_user"  parent="menu_hr_expense_approval_root" />
-  <menuitem name="Đề xuất của tôi" id="menu_hr_expense_approval_quotation_root_my" groups="base.group_user"  parent="menu_hr_expense_approval_quotation_root"  action="action_my_quotation_request"/>
-  <menuitem name="Chủ dự toán duyệt" id="menu_hr_expense_approval_quotation_root_manager" groups="base.group_user"  parent="menu_hr_expense_approval_quotation_root" />
-  <menuitem name="Tài chính duyệt" id="menu_hr_expense_approval_quotation_root_approval" parent="menu_hr_expense_approval_quotation_root" groups="base.group_user" />
-  <!-- <menuitem name="All Requests" id="menu_hr_expense_approval_quotation_root_all" parent="menu_hr_expense_approval_quotation_root" groups="base.group_user" /> -->
-
-  <menuitem name="Yêu cầu thanh toán" id="menu_hr_expense_approval_payment_root" parent="menu_hr_expense_approval_root" groups="base.group_user" />
-  <menuitem name="Chủ dự toán duyệt" id="menu_hr_expense_approval_payment_root_my" parent="menu_hr_expense_approval_payment_root" groups="base.group_user" action="action_my_payment_request" />
-  <menuitem name="Tài chính duyệt" id="menu_hr_expense_approval_payment_root_approval" parent="menu_hr_expense_approval_payment_root" groups="base.group_user" />
-
-  <!-- Menu Settings -->
-  <menuitem name="Cấu hình" id="menu_hr_expense_approval_settings" parent="menu_hr_expense_approval_root" groups="base.group_user"/>
-  <menuitem name="Danh mục hoạt đông" id="menu_hr_expense_approval_settings_financial_activity" parent="menu_hr_expense_approval_settings" action="action_settings_activity" />
-  <menuitem name="Mức phê duyệt Chủ dự toán" id="menu_hr_expense_approval_settings_level" parent="menu_hr_expense_approval_settings" action="action_settings_level" />
-  <menuitem name="Danh mục mã dự toán" id="menu_hr_expense_approval_settings_financial_costcenter" parent="menu_hr_expense_approval_settings" action="action_settings_costcenter" />
-  <menuitem name="Địa điểm hoạt động" id="menu_hr_expense_approval_settings_location" parent="menu_hr_expense_approval_settings" action="action_settings_location" />
-  <menuitem name="Mức phê duyệt Tài chính" id="menu_hr_expense_approval_settings_financial_level" parent="menu_hr_expense_approval_settings" action="action_settings_financial_level" />
-  <menuitem name="Phê duyệt tài chính" id="menu_hr_expense_approval_settings_company_financial_approval" parent="menu_hr_expense_approval_settings" action="action_settings_company_financial_approval" />
+  <menuitem name="Duyệt chi Online" id="menu_hr_expense_approval_root" action="" groups="base.group_user" sequence="500" web_icon="hr_expense,static/description/icon.png"/>
+      <menuitem name="Đề xuất" id="menu_hr_expense_approval_quotation_root" groups="base.group_user"  parent="menu_hr_expense_approval_root" />
+          <menuitem name="Đề xuất dự toán" id="menu_hr_expense_approval_quotation_root_my" groups="base.group_user"  parent="menu_hr_expense_approval_quotation_root"  action="action_my_quotation_request"/>
+          <menuitem name="Yêu cầu thanh toán" id="menu_hr_expense_approval_payment_root_my" parent="menu_hr_expense_approval_quotation_root" groups="base.group_user" action="action_my_payment_request" />
+          
+      <menuitem name="Cấu hình" id="menu_hr_expense_approval_settings" parent="menu_hr_expense_approval_root" groups="base.group_user"/>
+        <menuitem name="Các hoạt động chi phí" id="menu_hr_expense_approval_settings_financial_activity" parent="menu_hr_expense_approval_settings" groups="base.group_user"/>
+            <menuitem name="Danh mục hoạt động" id="menu_hr_expense_approval_settings_financial_activity_main" parent="menu_hr_expense_approval_settings_financial_activity" action="action_settings_activity" groups="base.group_user"/>
+            <menuitem name="Tài liệu, chứng từ" id="menu_hr_expense_approval_settings_financial_activity_documents" parent="menu_hr_expense_approval_settings_financial_activity" action="action_settings_activity_document" groups="base.group_user"/>
+            <menuitem name="Bút toán hoạch toán" id="menu_hr_expense_approval_settings_financial_activity_payment" parent="menu_hr_expense_approval_settings_financial_activity" action="action_settings_activity_payment" groups="base.group_user"/>
+        <menuitem name="Địa điểm hoạt động" id="menu_hr_expense_approval_settings_location" parent="menu_hr_expense_approval_settings" action="action_settings_location" groups="base.group_user"/>
+        <menuitem name="Cấu hình Dự toán" id="menu_hr_expense_approval_settings_cost_center" parent="menu_hr_expense_approval_settings" groups="base.group_user"/>
+            <menuitem name="Thông tin chủ dự toán" id="menu_hr_expense_approval_settings_cost_center_info" parent="menu_hr_expense_approval_settings_cost_center" action="action_settings_costcenter" groups="base.group_user"/>
+            <menuitem name="Mã dự toán" id="menu_hr_expense_approval_settings_cost_center_code" parent="menu_hr_expense_approval_settings_cost_center" action="action_settings_costcenter_code" groups="base.group_user"/>
+            <menuitem name="Mức phê duyệt" id="menu_hr_expense_approval_settings_cost_center_level" parent="menu_hr_expense_approval_settings_cost_center" action="action_settings_cost_center_level" groups="base.group_user"/>
+        <menuitem name="Cấu hình Pháp nhân" id="menu_hr_expense_approval_settings_company" parent="menu_hr_expense_approval_settings" groups="base.group_user"/>
+            <menuitem name="Cấp phê duyệt" id="menu_hr_expense_approval_settings_company_info" parent="menu_hr_expense_approval_settings_company" action="action_settings_company" groups="base.group_user"/>
+            <menuitem name="Mức phê duyệt" id="menu_hr_expense_approval_settings_company_level" parent="menu_hr_expense_approval_settings_company" action="action_settings_company_level" groups="base.group_user"/>
   </odoo>
