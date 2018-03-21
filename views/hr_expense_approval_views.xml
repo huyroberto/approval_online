@@ -1,25 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
- <record id="view_my_quotation_requests_tree" model="ir.ui.view">
-            <field name="name">Đề xuất sử dụng dự toán</field>
-            <field name="model">hr.expense_approval.request_quotation</field>
-            <field name="arch" type="xml">
-                <tree string="My Quotation Request">
-                    <field name="quotation_request_id"/>
-                    <field name="cost_center_id"/>
-                    <field name="location_id"/>
-                    <field name="payment_date" />
-                    <field name="amount_vnd"/>
-                    <field name="state"/>
-                </tree>
-            </field>
-        </record>
-  <record id="action_my_quotation_request" model="ir.actions.act_window">
+    <record id="view_my_quotation_requests_tree" model="ir.ui.view">
+        <field name="name">Đề xuất sử dụng dự toán</field>
+        <field name="model">hr.expense_approval.request_quotation</field>
+        <field name="arch" type="xml">
+            <tree string="My Quotation Request">
+                <field name="name"/>
+                <field name='create_date'/>
+                <field name='employee_id'/>
+                <field name="payment_date" />
+                <field name="total_amount_vnd"/>
+                <field name='approval_next'/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+    <record id="search_view_quotation_requests" model="ir.ui.view">
+        <field name="name">Đề xuất sử dụng dự toán</field>
+        <field name="model">hr.expense_approval.request_quotation</field>
+        <field name="arch" type="xml">
+            <search string="Search Sales Order">
+                 <field name="name"/>
+                <field name='create_date'/>
+                <field name='employee_id'/>
+                <field name="payment_date" />
+                <field name="total_amount_vnd"/>
+                <field name='approval_next'/>
+                <field name="state"/>
+                <filter string="Yêu cầu của tôi" domain="[('employee_id','=',uid)]" name="my_quotation_requests_filter"/>
+                <filter string="Chờ tôi phê duyệt" domain="[('approval_next','=',uid)]" name="my_approval_quotation_requests_filter"/>
+                <separator/>
+                <filter string="Chưa giao kế toán" name="unassign_quotation_requests_filter" domain="[('fi_ox_approver_id','=',False)]"/>
+                <filter string="Đang chờ thanh toán" name="unpaid_quotation_requests_filter" domain="[('state','=','done')]"/>
+            </search>
+        </field>
+    </record>
+    <record id="action_my_quotation_request" model="ir.actions.act_window">
             <field name="name">Đề xuất sử dụng dự toán</field>
             <field name="res_model">hr.expense_approval.request_quotation</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,kanban,form,pivot,graph</field>
-            <field name="view_id" ref="view_my_quotation_requests_tree"/>
+            <!-- <field name="view_id" ref="view_my_quotation_requests_tree"/> -->
+            <field name="search_view_id" ref="search_view_quotation_requests"/>
             <field name="domain">[]</field>
             <field name="help" type="html">
               <p>
@@ -29,106 +51,145 @@
         </record> 
         
 
-<record id="view_hr_expense_approval_request_quotation_form_view" model="ir.ui.view">
-            <field name="name">hr.expense_approval.request_quotation.form</field>
-            <field name="model">hr.expense_approval.request_quotation</field>
-            <field eval="25" name="priority"/>
-            <field name="arch" type="xml">
-<form string="Quotation Request">
-                 <header>
-                    <button name="action_draft" type="object" string="Quay lại draft" states="confirmed,approved,done"/>
-                        <button name="action_confirm" type="object" string="Xác nhận" states="draft" class="oe_highlight"/>
-                        <button name="action_approve" type="object" string="Phê duyệt" states="confirmed" class="oe_highlight" />
-                        <button name="action_done" type="object" string="Phê duyệt" states="approved" class="oe_highlight"/>
-                        <field name="state" widget="statusbar"/>
+    <record id="view_hr_expense_approval_request_quotation_form_view" model="ir.ui.view">
+        <field name="name">hr.expense_approval.request_quotation.form</field>
+        <field name="model">hr.expense_approval.request_quotation</field>
+        <field eval="25" name="priority"/>
+        <field name="arch" type="xml">
+            <form string="Quotation Request">
+                <header>
+                    <button name="action_draft" type="object" string="Quay lại draft" states="confirmed,approved"/>
+                    <button name="action_confirm" type="object" string="Xác nhận" states="draft" class="oe_highlight"/>
+                    <button name="action_approve" type="object" string="Phê duyệt" states="confirmed" class="oe_highlight"/>
+                    <button name="action_done" type="object" string="Phê duyệt" states="approved" class="oe_highlight"/>
+                    <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
-                    
                     <h2>Thông tin dự toán</h2>
-                    <field name="quotation_request_id"/>
-                     <group>
+                    <field name="name"/>
+                    <group  attrs="{'invisible':['|',('state','=','draft'),('state','=','confirmed')]}">
                         <group>
-                            <field name="cost_center_id"/>
+                            <field name="financial_activity"/>
+                        </group>
+                        <group>
+                            <field name="fi_ox"/>
                         </group>
                     </group>
-                    <group>
-                        <group>
-                            <field name="avaiable_amount"/>
-                        </group>
-                        <group>
-                            <field name="real_amount"/>
-                        </group>
-                    </group>
-                    <group>
-                        <group>
-                            <field name="payment_date"/>
-                        </group>
-                        
+                    <group  attrs="{'invisible':['|',('state','=','draft'),('state','=','confirmed')]}">
+                        <field name='financial_activity_desc'/>
                     </group>
                     <group>
                         <group>
                             <field name="company_id"/>
+                            <field name="payment_date"/>
                         </group>
                         <group>
                             <field name="location_id"/>
                         </group>
                     </group>
-                    <group><field name="name"/></group>
-                    <group><field name="financial_activity"  attrs="{'invisible':['|',('state','=','draft'),('state','=','confirmed')]}"/></group>
-                    <hr/>
-                    <strong>Hồ sơ chứng từ</strong>
-                    <field name="attachments" widget="many2many">
-        <tree>
-            <field name="name"/>
-        </tree>
-        </field>
-        <hr/>       
-            <strong>Biểu mẫu, quy trình</strong>
-                    <field name="template_attachments" widget="many2many">
-        <tree>
-            <field name="name"/>
-        </tree>
-        </field>
-                    <hr/>
-                    <h2>Thông tin thanh toán</h2>
+                    <group><field name='description'/></group>
                     <group>
-                            <field name="beneficiary" placeholder="VD Công ty CMC Telecom"/>
-                    </group>
-                    
                         <group>
+                            <field name="currency_id"/>
+                            <field name="total_amount"/>
+                        </group>
+                        <group>
+                            <field name="currency_rate"/>
+                            <field name="total_amount_vnd"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string='Yêu cầu các mã dự toán'>
+                         
+                            <field name='cost_center_requests' mode="tree,kanban" context="{'default_payment_date' : payment_date,'currency_rate':currency_rate}">
+                                <tree string="Yêu cầu cấp dự toán" editable="bottom">
+                                    <field name="cost_center_id"/>
+                                    <field name="cost_center_desc"/>
+                                    <field name="amount"/>
+                                    <field name="avaiable_amount"/>
+                                     <field name='payment_date' invisible='1'/>
+                                     <field name='currency_rate' invisible='1'/>
+                                    
+                                </tree>
+                            </field>
+                        </page>
+                        
+                        <page string='Thông tin phê duyệt'>
                             <group>
-                                <field name="currency_id"/>
-                                <field name="amount"/>
+                                <group>
+                                    <field name='approval_level'/>
+                                    <field name="employee_id"/>
+                                    <field name="cost_center_pm"/>
+                                </group>
+                                <group>
+                                    <field name="cost_center_td"/>
+                                    <field name="cost_center_sd"/>
+                                    <field name="cost_center_ce"/>
+                                </group>
                             </group>
-                            <group>
-                                <field name="currency_rate"/>
-                                <field name="amount_vnd"/>
-                            </group>
-                        </group>
-                    <hr/>
-                    <h2>Phê duyệt Chủ dự toán</h2>
-                    <group>
-                        <group><field name='approval_level'/></group>
-                        <group><field name='approval_next'/></group>
-                    </group>
-                    <group>
-                        <group>
-                            <field name="employee_id"/>
-                            <field name="pm_approver_id"/>
-                            <field name="td_approver_id"/>
-                        </group>
-                        <group>
-                           
-                            <field name="sd_approver_id"/>
-                            <field name="ce_approver_id"/>
-                            <field name="ceo_approver_id"/>
-                        </group>
-                    </group>
-                    <hr/>
-                    <h2>Phê duyệt tài chính</h2>
-                    <field name="fi_ox_approver_id" attrs="{'invisible':[('state','=','approved')]}"/>
+                        </page>
+                        <page string='Hồ sơ, chứng từ'>
+                            <field name="attachments" nolabel="1" widget="many2many">
+                                <tree>
+                                    <field name="name"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
-                </form>
-            </field>
-        </record>
+                 <!-- <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div> -->
+            </form>
+        </field>
+    </record>
+
+<!-- ĐỊA ĐIỂM HOẠT ĐỘNG -->
+    <record id="view_request_cost_center_tree" model="ir.ui.view">
+        <field name="name">Yêu cầu cấp dự toán</field>
+        <field name="model">hr.expense_approval.request_cost_center</field>
+        <field name="arch" type="xml">
+            <tree string="Yêu cầu cấp dự toán">
+                <field name="cost_center_id"/>
+                <field name="avaiable_amount"/>
+                <field name="amount"/>
+            </tree>
+        </field>
+    </record>
+    <record id="action_request_cost_center" model="ir.actions.act_window">
+        <field name="name">Yêu cầu cấp dự toán</field>
+        <field name="res_model">hr.expense_approval.request_cost_center</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,kanban,form,pivot,graph</field>
+        <field name="view_id" ref="view_request_cost_center_tree"/>
+        <field name="domain">[]</field>
+        
+    </record> 
+
+    <record id="view_request_cost_center_form_view" model="ir.ui.view">
+        <field name="name">Yêu cầu cấp dự toán</field>
+        <field name="model">hr.expense_approval.request_cost_center</field>
+        <field eval="25" name="priority"/>
+        <field name="arch" type="xml">
+            <form string="Yêu cầu cấp dự toán">
+            <sheet>
+                <group>
+                    <group>
+                        <field name="cost_center_id"/>
+                    </group>
+                    <group>
+                        <field name="avaiable_amount"/>
+                    </group>
+                </group>
+                <group>
+                    <field name="cost_center_desc"/>
+                </group> 
+                <group>
+                    <field name="amount"/>
+                </group> 
+            </sheet>
+            </form>
+        </field>
+    </record>
 </odoo>

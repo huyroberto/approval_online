@@ -6,20 +6,43 @@
             <field name="model">hr.expense_approval.request_payment</field>
             <field name="arch" type="xml">
                 <tree string="My Payment Request">
-                    <field name="payment_request_id"/>
                     <field name="name"/>
-                    <field name="date" />
-                   <field name="amount_vnd"/>
-                   <field name="state"/>
+                    <field name='create_date'/>
+                    <field name='employee_id'/>
+                    <field name="payment_date" />
+                    <field name="total_payment_amount_vnd"/>
+                    <field name='approval_next'/>
+                    <field name="state"/>
                 </tree>
             </field>
-        </record>
+        </record> -
+<record id="search_view_payment_requests" model="ir.ui.view">
+        <field name="name">Yêu cầu thanh toán</field>
+        <field name="model">hr.expense_approval.request_payment</field>
+        <field name="arch" type="xml">
+            <search string="Search Sales Order">
+                <field name="name"/>
+                <field name='create_date'/>
+                <field name='employee_id'/>
+                <field name="payment_date" />
+                <field name="total_payment_amount_vnd"/>
+                <field name='approval_next'/>
+                <field name="state"/>
+                <filter string="Yêu cầu của tôi" domain="[('employee_id','=',uid)]" name="my_quotation_requests_filter"/>
+                <filter string="Chờ tôi phê duyệt" domain="[('approval_next','=',uid)]" name="my_approval_quotation_requests_filter"/>
+                <!-- <separator/> -->
+                <!-- <filter string="Chưa giao kế toán" name="unassign_quotation_requests_filter" domain="[('fi_ox_approver_id','=',False)]"/> -->
+                <!-- <filter string="Đang chờ thanh toán" name="unpaid_quotation_requests_filter" domain="[('state','=','done')]"/> -->
+            </search>
+        </field>
+    </record>        
   <record id="action_my_payment_request" model="ir.actions.act_window">
             <field name="name">My Payment Request</field>
             <field name="res_model">hr.expense_approval.request_payment</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,kanban,form,pivot,graph</field>
-            <field name="view_id" ref="view_my_payment_requests_tree"/>
+            <!-- <field name="view_id" ref="view_my_payment_requests_tree"/> -->
+            <field name="search_view_id" ref="search_view_payment_requests"/>
             <field name="domain">[]</field>
             <field name="help" type="html">
               <p>
@@ -27,7 +50,6 @@
               </p>
             </field>
         </record> 
-
 <record id="view_hr_expense_approval_request_payment_form_view" model="ir.ui.view">
             <field name="name">hr.expense_approval.request_payment.form</field>
             <field name="model">hr.expense_approval.request_payment</field>
@@ -35,125 +57,115 @@
             <field name="arch" type="xml">
                 <form string="Payment Request">
                  <header>
-                        <button name="action_draft" type="object" string="Quay lại draft" states="confirmed,approved,done"/>
+                        <button name="action_draft" type="object" string="Quay lại draft" states="confirmed,approved"/>
                         <button name="action_confirm" type="object" string="Xác nhận" states="draft" class="oe_highlight"/>
                         <button name="action_approve" type="object" string="Phê duyệt" states="confirmed" class="oe_highlight" />
                         <button name="action_done" type="object" string="Phê duyệt" states="approved" class="oe_highlight"/>
                         <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
-                    <!-- <div class="oe_button_box">
-                        <button name="action_get_attachment_view"
-                            class="oe_stat_button"
-                            icon="fa-book"
-                            type="object">
-                            <field name="attachment_number" widget="statinfo" string="Documents"/>
-                        </button>
-                    </div> -->
                     <h2>Thông tin dự toán</h2>
-                    <field name="payment_request_id"/>
                     <group>
                         <group>
                             <field name="quotation_id"/>
                         </group>
                         <group>
-                            <field name="cost_center_id"/>
-                        </group>
-                    </group>
-                    <group>
-                        <group>
                             <field name="payment_date"/>
                         </group>
-                        
                     </group>
                     <group>
-                        <group>
-                            <field name="avaiable_amount"/>
-                        </group>
-                        <group>
-                            <field name="real_amount"/>
-                        </group>
+                        <group><field name='description'/></group>
+                        <group><field name='payment_type'/></group>
+                    </group>
+                    <group attrs="{'invisible':['|',('state','=','draft'),('state','=','confirmed')]}">
+                        <field name="financial_activity" />
                     </group>
                     <group>
                         <group>
                             <field name="company_id"/>
+                            <field name="currency_id"/>
                         </group>
                         <group>
                             <field name="location_id"/>
+                            <field name="currency_rate"/>
                         </group>
                     </group>
-                    <group><field name="name"/></group>
                     <hr/>
-                    <group><field name="financial_activity"/></group>
-                    <hr/>
-                    <h2>Thông tin thanh toán</h2>
+                    <strong>Số tiền thanh toán</strong>
                     <group>
-                            <field name="beneficiary"/>
-                    </group>
-                    
                         <group>
-                            <group>
-                                <field name="currency_id"/>
-                                <field name="amount"/>
-                            </group>
-                            <group>
-                                <field name="currency_rate"/>
-                                <field name="amount_vnd"/>
-                            </group>
-                        </group>
-                    <hr/>
-                    <strong>Lịch thanh toán</strong>
-                    <field name="expense_line_ids" nolabel="1" widget="many2many">
-                            <tree>
-                                <field name="name"/>
-                                <field name="payment_date"/>
-                                <field name="total_amount" widget="monetary"/>
-                           </tree>
-                        </field>
-                    <hr/>
-		            <group>                      
-		                <group>			
-			                <field name="total_line_cash_amount"/>
+                            <!-- <field name="total_amount"/> -->
+                            <field name="total_payment_amount"/>
+                            <field name="total_line_cash_amount"/>
                         </group>
                         <group>
-                          <field name="total_line_bank_amount"/>
+                            
+                            <!-- <field name="total_amount_vnd"/> -->
+                            <field name="total_payment_amount_vnd"/>
+                            <field name="total_line_bank_amount"/>
                         </group>
                     </group>	
-                    <hr/>	    
-                    <h3>Phê duyệt</h3>
-                    <group>
-                        <group><field name='approval_level'/></group>
-                        <group><field name='approval_next'/></group>
-                    </group>	
-                    <strong>Phê duyệt Chủ dự toán</strong>
-                    <group>
-                        <group>
-                            <field name="employee_id"/>
-                            <field name="pm_approver_id"/>
-                            <field name="td_approver_id"/>
-                        </group>
-                        <group>
-                           
-                            <field name="sd_approver_id"/>
-                            <field name="ce_approver_id"/>
-                            <field name="ceo_approver_id"/>
-                        </group>
-                    </group>
-                    <hr/>
-                    <strong>Phê duyệt tài chính</strong>
-                    <group>
-                        <group>
-                            <field name="fi_ox_approver_id" attrs="{'invisible':[('state','=','approved')]}"/>
-                            <field name="fi_pm_approver_id" attrs="{'invisible':[('state','=','approved')]}"/>
-                            <field name="fi_td_approver_id" attrs="{'invisible':[('state','=','approved')]}"/>
-                        </group>
-                        <group>
-                           
-                            <field name="fi_sd_approver_id" attrs="{'invisible':[('state','=','approved')]}"/>
-                            <field name="fi_ce_approver_id" attrs="{'invisible':[('state','=','approved')]}"/>
-                            <field name="fi_cfo_approver_id" attrs="{'invisible':[('state','=','approved')]}"/>
-                        </group>
-                    </group>
+                     <notebook>
+                        <page string='Yêu cầu theo mã dự toán'>
+                            <field name='cost_center_payment_requests' mode="tree,kanban">
+                                <tree string="Yêu cầu cấp dự toán" editable="bottom" context="{'default_payment_date' : payment_date}">
+                                    <field name="cost_center_id"/>
+                                    <field name="cost_center_desc"/>
+                                    <field name="amount"/>
+                                    <field name="payment_amount"/>
+                                    <field name="avaiable_amount"/>
+                                    <field name='payment_date' invisible='1'/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string='Lịch thanh toán'>
+                            <field name='expense_line_ids' mode="tree,kanban">
+                                <tree string="Lịch thanh toán" >
+                                    <field name="name"/>
+                                    <field name="payment_date"/>
+                                    <field name="bank_amount"/>
+                                    <field name="cash_amount"/>
+                                    <field name="total_amount"/>
+                                </tree>
+                            </field>
+                        </page>
+                        
+                        <page string='Chủ dự toán phê duyệt'>
+                            <group>
+                                <group>
+                                    <field name='approval_level'/>
+                                    <field name="employee_id"/>
+                                    <field name="cost_center_pm"/>
+                                </group>
+                                <group>
+                                    <field name="cost_center_td"/>
+                                    <field name="cost_center_sd"/>
+                                    <field name="cost_center_ce"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string='Tài chính phê duyệt'>
+                            <group>
+                                <group>
+                                    <field name='fi_approval_level'/>
+                                    <field name="fi_ox" attrs="{'invisible':[('state','=','approved')]}"/>
+                                    <field name="fi_pm" attrs="{'invisible':[('state','=','approved')]}"/>
+                                </group>
+                                <group>
+                                    <field name="fi_td" attrs="{'invisible':[('state','=','approved')]}"/>
+                                    <field name="fi_sd" attrs="{'invisible':[('state','=','approved')]}"/>
+                                    <field name="fi_ce" attrs="{'invisible':[('state','=','approved')]}"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string='Hồ sơ, chứng từ'>
+                            <field name="attachments" nolabel="1" widget="many2many">
+                                <tree>
+                                    <field name="name"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>	    
                 </sheet>
                 </form>
             </field>
@@ -166,14 +178,6 @@
             <field name="arch" type="xml">
                 <form string="Lịch thanh toán">
                 <sheet>
-                    <div class="oe_button_box">
-                        <button name="action_get_attachment_view"
-                            class="oe_stat_button"
-                            icon="fa-book"
-                            type="object">
-                            <field name="attachment_number" widget="statinfo" string="Documents"/>
-                        </button>
-                    </div>
                      <div>
                         <label for="name"/>
                         <h1>
