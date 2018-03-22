@@ -153,7 +153,7 @@ class PaymentRequest(models.Model):
             , readonly=True)
 
     #cost_center_approved = fields.Many2many('res.users')
-    fi_ox_approved = fields.Many2one('res.users', string="Cấp PM",store=True,readonly=True)
+    fi_ox_approved = fields.Many2one('res.users', string="Cấp OX",store=True,readonly=True)
     fi_pm_approved = fields.Many2one('res.users', string="Cấp PM",store=True,readonly=True)
     fi_td_approved = fields.Many2one('res.users', string="Cấp TD",store=True,readonly=True)
     fi_sd_approved= fields.Many2one('res.users', string="Cấp SD",store=True,readonly=True)
@@ -173,9 +173,10 @@ class PaymentRequest(models.Model):
         ], default='pm', string='Trạng thái',store=True)
 
     #Line
-    expense_line_ids = fields.One2many('hr.expense_approval.request_payment.line', 'payment_id', string="Các lịch thanh toán",ondelete="cascade", copy=False)
+    expense_line_ids = fields.One2many('hr.expense_approval.request_payment.line', 'payment_id',
+                                       string="Các lịch thanh toán",ondelete="cascade", copy=False)
     
-#Status - BEGIN
+    #Status - BEGIN
     payment_type = fields.Selection([
         ('payment', 'Thanh toán'),
         ('temp', 'Tạm ứng')
@@ -194,12 +195,14 @@ class PaymentRequest(models.Model):
         for request in self:
             list_level = self.env['hr.expense_approval.cost_center_level'].search([])
             for level in list_level:
-                if(level.from_amount < request.total_payment_amount_vnd and (level.to_amount == 0 or level.to_amount >= request.total_payment_amount_vnd)):
+                if(level.from_amount < request.total_payment_amount_vnd and
+                   (level.to_amount == 0 or level.to_amount >= request.total_payment_amount_vnd)):
                     request.approval_level = level
 
             list_company_level = self.env['hr.expense_approval.company_level'].search([])
             for level in list_company_level:
-                if(level.from_amount < request.total_payment_amount_vnd and (level.to_amount == 0 or level.to_amount >= request.total_payment_amount_vnd)):
+                if(level.from_amount < request.total_payment_amount_vnd and
+                   (level.to_amount == 0 or level.to_amount >= request.total_payment_amount_vnd)):
                     request.fi_approval_level = level
 
     @api.depends('cost_center_payment_requests')
@@ -209,8 +212,10 @@ class PaymentRequest(models.Model):
             for line in request.cost_center_payment_requests:
                 #line.update({'avaiable_amount':100000})
                 _total_amount += line.payment_amount
+
             _logger.info('Total amount ', str(_total_amount))
             request.total_payment_amount = _total_amount
+            
     @api.model
     def create(self, vals):
         if vals.get('name', 'New') == 'New':
@@ -363,7 +368,8 @@ class PaymentRequest(models.Model):
         if(self.approval_level_next == 'ce'):
             self.fi_ce_approved = self.approval_next
 
-    @api.onchange('quotation_id')
+    #@api.onchange('quotation_id')
+    @api.depends('quotation_id','total_payment_amount_vnd')
     def _onchange_quotation_id(self):
         for payment in self:
             
@@ -383,7 +389,7 @@ class PaymentRequest(models.Model):
             payment.cost_center_sd = payment.quotation_id.cost_center_sd
             payment.cost_center_ce = payment.quotation_id.cost_center_ce
 
-            payment.fi_ox = payment.quotation_id.fi_ox
+            payment.fi_ox = payment.quotation_id.cost_center_pm#fi_ox
             
 
             #REFRESH LIST COST_CENTER_PAYMENT_REQUEST

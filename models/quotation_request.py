@@ -252,16 +252,16 @@ class QuotationRequest(models.Model):
         
     @api.multi
     def action_approve(self):
-        #if(self.approval_next.id != self.env.uid):
-        #    return True
+        if(self.approval_next.id != self.env.uid):
+            return True
 
                 
         if(self.approval_level.level == self.approval_level_next):
             _logger.info('CAP PHE DUYET CUOI CUNG')
             self.state = 'approved'
-        #else:
-        _logger.info('send mail for next approval')
-        self.send_mail_template(self.approval_next.id)
+        else:
+            _logger.info('send mail for next approval')
+            self.send_mail_template(self.approval_next.id)
             
         if(self.approval_level_next == 'pm'):
             self.cost_center_pm_approved = self.approval_next
