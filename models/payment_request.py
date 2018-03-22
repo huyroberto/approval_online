@@ -93,7 +93,7 @@ class PaymentRequest(models.Model):
     #Amount
     #Số tiền
     currency_id = fields.Many2one('res.currency', string='Tiền tệ thanh toán',readonly=True ,compute='_onchange_quotation_id')
-    currency_rate = fields.Float(string="Tỷ giá",required=True, onchange='_compute_amount_vnd', compute='_onchange_quotation_id', store=True)
+    currency_rate = fields.Float(string="Tỷ giá", compute='_onchange_quotation_id', store=True)
     #total_amount = fields.Float(string='Đề xuất', readonly=True)
     #total_amount_vnd = fields.Float(string='Đề xuất(VND)', store=True, compute='_compute_amount_vnd')
     total_payment_amount = fields.Float(string='Thanh toán',  compute='_get_total_request_amount', store=True)

@@ -236,77 +236,37 @@ class QuotationRequest(models.Model):
             self.approval_level_next = 'ce'
             return     
 
-<<<<<<< HEAD
-        #Trangnt_ send mail for approval
+    @api.multi
+    def action_quotation_send(self):
+        return True
 
+    @api.multi
+    def send_mail_template(self, reciever_id):
         # Find the e-mail template
         #template = self.env.ref('mail_template_demo.example_email_template')
-    
-        template = self.env['ir.model.data'].get_object('mail_template_demo', 'example_email_template')
+        template = self.env['ir.model.data'].get_object('approval_online', 'example_email_template')
 
         # Send out the e-mail template to the user
-        self.env['mail.template'].browse(template.id).send_mail(self.id)
-                                                
-        #if self.env.context.get('send_email'):
-        #
-        #self.force_quotation_send()
-     
-        #if self.env['ir.values'].get_default('sale.config.settings', 'auto_done_setting'):
-        #    self.action_done()
-        
-=======
->>>>>>> 83cb92b662bff3561e27e4136fda45bf04155901
-    @api.multi
-    def action_quotation_send(self, rec_id):
-    
-        template = self.env['ir.model.data'].get_object('mail_template_demo', 'example_email_template')
-
-        # Send out the e-mail template to the user
-        self.env['mail.template'].browse(template.id).send_mail(rec_id)
-        
-        return True
+        self.env['mail.template'].browse(template.id).send_mail(reciever_id)
+        _logger.info('Send mail')
         
     @api.multi
     def action_approve(self):
-<<<<<<< HEAD
-        _logger.info('Approve now')
-        _logger.info('Next Approver:' + str(self.approval_next.user_id.id ))
-        _logger.info('Next Approver:' + str(self.env.uid))
-        if(self.approval_next.user_id.id != self.env.uid):
-            return {
-                    'warning': {
-                        'title': 'Warning!',
-                        'message': 'The warning text'}
-            }
-        else:
-            # approvers = self.approval_list.split(“|”)
-            # for approver in approvers
-            #     approver_id = int(approver)
-            my_emp_id = int(self.env.uid)
-            my_emp = self.env['hr.employee'].search([('user_id', '=', my_emp_id)])
-            _logger.info('My Employee ' + str(my_emp))
-            _logger.info('PM Approver ' + str(self.pm_approver_id.id))
-            #Trangnt: send mail for quotation
-            self.acction_quotation_send()
-            
-            #Lay list approvers cua cost center
-            if(self.pm_approver_id.id is False):
-                _logger.info('Set PM Approver')
-                self.pm_approver_id = my_emp
-                self.approval_next = self.cost_center_id.td_approver_id
-=======
-        if(self.approval_next.id != self.env.uid):
-            return True
-        
+        #if(self.approval_next.id != self.env.uid):
+        #    return True
+
+                
         if(self.approval_level.level == self.approval_level_next):
             _logger.info('CAP PHE DUYET CUOI CUNG')
             self.state = 'approved'
-        
+        #else:
+        _logger.info('send mail for next approval')
+        self.send_mail_template(self.approval_next.id)
+            
         if(self.approval_level_next == 'pm'):
             self.cost_center_pm_approved = self.approval_next
             if(self.cost_center_td):
                 self.approval_next = self.cost_center_td
->>>>>>> 83cb92b662bff3561e27e4136fda45bf04155901
                 self.approval_level_next = 'td'
                 return 
             if(self.cost_center_sd):
@@ -366,106 +326,4 @@ class QuotationRequest(models.Model):
     @api.depends('total_amount', 'currency_id','currency_rate')
     def _compute_amount_vnd(self):
         for request_quotation in self:
-<<<<<<< HEAD
-            request_quotation.amount_vnd = request_quotation.amount * request_quotation.currency_rate
-    
-    @api.depends('amount_vnd','cost_center_id')
-    def _set_approval_level(self):
-         for request_quotation in self:
-            list_level = self.env['hr.expense_approval.level'].search([])
-            for level in list_level:
-                if(level.from_amount < request_quotation.amount_vnd and (level.to_amount == 0 or level.to_amount >= request_quotation.amount_vnd)):
-                    request_quotation.approval_level = level
-            list_financial_level = self.env['hr.expense_approval.financial_level'].search([])
-            for level in list_financial_level:
-                if(level.from_amount < request_quotation.amount_vnd and (level.to_amount == 0 or level.to_amount >= request_quotation.amount_vnd)):
-                    request_quotation.financial_level = level
-
-    # @api.multi
-    # def _compute_attachment_number(self):
-    #     attachment_data = self.env['ir.attachment'].read_group([('res_model', '=', 'hr.expense_approval.request_quotation'), ('res_id', 'in', self.ids)], ['res_id'], ['res_id'])
-    #     attachment = dict((data['res_id'], data['res_id_count']) for data in attachment_data)
-    #     for request_quotation in self:
-    #         request_quotation.attachment_number = attachment.get(request_quotation.id, 0)
-    
-    # @api.multi
-    # def action_get_attachment_view(self):
-    #     self.ensure_one()
-    #     res = self.env['ir.actions.act_window'].for_xml_id('base', 'action_attachment')
-    #     res['domain'] = [('res_model', '=', 'hr.expense_approval.request_quotation'), ('res_id', 'in', self.ids)]
-    #     res['context'] = {'default_res_model': 'hr.expense_approval.request_quotation', 'default_res_id': self.id}
-    #     return res
-    
-    def _onchange_financial_activity(self):
-        self.template_attachments = self.financial_activity.attachments
-        self.name = self.cost_center_id.name + " - " + self.financial_activity.name
-
-    #@api.onchange('cost_center_id')
-    @api.depends('payment_date','cost_center_id')
-    def _compute_cost_center_amount(self):
-        if(self.cost_center_id):
-            for request_quotation in self:    
-
-                #Next Approval Online
-                #Phu thuoc vao cost_center_id
-                request_quotation.approval_next = request_quotation.cost_center_id.pm_approver_id
-                if(request_quotation.pm_approver_id):
-                    request_quotation.approval_next = request_quotation.cost_center_id.td_approver_id
-                
-                if(request_quotation.td_approver_id and (request_quotation.approval_level.level == "sd" or request_quotation.approval_level.level == "ce")):
-                    request_quotation.approval_next = request_quotation.cost_center_id.sd_approver_id
-
-                
-                if(request_quotation.sd_approver_id and (request_quotation.approval_level.level == "ce")):
-                    request_quotation.approval_next = request_quotation.cost_center_id.ce_approver_id
-
-                _logger.info('Next Approval: ' + str(request_quotation.approval_next))
-
-                #request_quotation.pm_approver_id = request_quotation.cost_center_id.pm_approver_id
-                #request_quotation.td_approver_id = request_quotation.cost_center_id.td_approver_id
-                #request_quotation.sd_approver_id = request_quotation.cost_center_id.sd_approver_id
-                #request_quotation.ce_approver_id = request_quotation.cost_center_id.ce_approver_id
-                #request_quotation.ceo_approver_id = request_quotation.cost_center_id.ceo_approver_id
-
-                avaiable_url = 'http://training.kehoach.osscar.topica.vn/api/ApiBoardChiPhi/CanPay'
-                real_url = 'http://training.kehoach.osscar.topica.vn/api/ApiBoardChiPhi/MyPresentMoney'
-                # int(str
-                # (
-                # datetime.strftime
-                #     (
-                #         request_quotation.payment_date,'%Y'
-                #     )
-                # ) + 
-                # str(int(datetime.strftime(request_quotation.payment_date,'%m')))),
-                datepayment = datetime.strptime(request_quotation.payment_date, "%Y-%m-%d")
-                #_logger.info('Payment Date: '+ str(datepayment.year * 10 + datepayment.month))
-                avaiable_params = {
-                                        'cdt':request_quotation.cost_center_id.name[:3],
-                                        'ma_du_toan':request_quotation.cost_center_id.name,
-                                        'thang': datepayment.year * 10 + datepayment.month,
-                                        'so_tien':0
-                                }
-                r = requests.post(url = avaiable_url, data = avaiable_params)
-                r_real = requests.post(url = real_url, data = avaiable_params)
-                #conn = httplib.HTTPConnection("training.kehoach.osscar.topica.vn:80")
-                #conn.request("POST", "/api/ApiBoardChiPhi/CanPay?"+urllib.urlencode(avaiable_params))
-                _logger.info('BPMS Request: ' + urllib.urlencode(avaiable_params))
-                #r = conn.getresponse()
-                response_data_a = json.loads(json.dumps(json.loads(r.content)))
-                response_data_r = json.loads(json.dumps(json.loads(r_real.content)))
-                _logger.info('BPMS Response: ' + str(response_data_a) + str(response_data_r))
-                _logger.info('Out Value: ' + str(response_data_a["outValue"]))
-                #if(response_data_a["success"]==1):
-                request_quotation.avaiable_amount = float(response_data_a["outValue"])
-                request_quotation.real_amount = float(response_data_r["outValue"])
-            #else:
-            #    request_quotation.avaiable_amount = 0
-            #    request_quotation.real_amount = 0
-    @api.model
-    def create(self,vals):
-        vals["quotation_request_id"] = datetime.utcnow().strftime('%Y%m%d.%H%M%S%f')[:-3]
-        #vals["name"]= selft.cost_center_id.name + "-" + self.financial_activity.name
-        return super(QuotationRequest,self).create(vals)
-=======
             request_quotation.total_amount_vnd = request_quotation.total_amount * request_quotation.currency_rate
->>>>>>> 83cb92b662bff3561e27e4136fda45bf04155901
