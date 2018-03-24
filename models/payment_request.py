@@ -85,7 +85,7 @@ class PaymentRequest(models.Model):
                 'hr.expense_approval.request_cost_center_payment'
                 , 'request_payment'
                 , string='Yêu cầu mã dự toán'
-                , onchange='_get_total_request_amount'
+                #, onchange='_get_total_request_amount'
                 , states={'confirmed': [('readonly', True)], 'approved': [('readonly', True)], 'done': [('readonly', True)], 'closed': [('readonly', True)]}
                 , ondelete="cascade", copy=False)
     
@@ -96,12 +96,12 @@ class PaymentRequest(models.Model):
     currency_rate = fields.Float(string="Tỷ giá", compute='_onchange_quotation_id', store=True)
     #total_amount = fields.Float(string='Đề xuất', readonly=True)
     #total_amount_vnd = fields.Float(string='Đề xuất(VND)', store=True, compute='_compute_amount_vnd')
-    total_payment_amount = fields.Float(string='Thanh toán',  compute='_get_total_request_amount', store=True)
-    total_payment_amount_vnd = fields.Float(string='Thanh toán (VND)',compute='_compute_amount_vnd')
+    total_payment_amount = fields.Float(string='Thanh toán',  compute='_get_total_request_amount', readonly=True, store=True)
+    total_payment_amount_vnd = fields.Float(string='Thanh toán (VND)',compute='_compute_amount_vnd', readonly = True, store=True)
     #total_amount_text = fields.Char(string='Đề xuất(VND) bằng chữ',readonly=True)
 
-    total_line_cash_amount = fields.Float(string='Tiền mặt', compute='_compute_totalAmount')
-    total_line_bank_amount = fields.Float(string='Chuyển khoản ngân hàng', compute='_compute_totalAmount')
+    total_line_cash_amount = fields.Float(string='Tiền mặt', compute='_compute_totalAmount', store=True, readonly=True)
+    total_line_bank_amount = fields.Float(string='Chuyển khoản ngân hàng', compute='_compute_totalAmount', store=True, readonly=True)
 
 
     attachments = fields.Many2many(
@@ -160,8 +160,8 @@ class PaymentRequest(models.Model):
     fi_ce_approved = fields.Many2one('res.users', string="Cấp CE",store=True,readonly=True)
     fi_ceo_approved = fields.Many2one('res.users', string="Giám đốc",store=True,readonly=True)
 
-    approval_level = fields.Many2one('hr.expense_approval.cost_center_level',string='Cấp phê duyệt', compute='_set_approval_level',readonly=True)
-    fi_approval_level = fields.Many2one('hr.expense_approval.company_level',string='Cấp phê duyệt', compute='_set_approval_level',readonly=True)
+    approval_level = fields.Many2one('hr.expense_approval.cost_center_level',string='Cấp phê duyệt', compute='_set_approval_level',readonly=True, store=True)
+    fi_approval_level = fields.Many2one('hr.expense_approval.company_level',string='Cấp phê duyệt', compute='_set_approval_level',readonly=True, store=True)
     approval_next =  fields.Many2one('res.users', string="Người phê duyệt tiếp", compute='_compute_cost_center_amount', readonly=True,store=True)
      #Approval
     approval_level_next = fields.Selection([
@@ -214,7 +214,7 @@ class PaymentRequest(models.Model):
                 _total_amount += line.payment_amount
 
             _logger.info('Total amount ', str(_total_amount))
-            request.total_payment_amount = _total_amount
+            request.update({'total_payment_amount':_total_amount})
             
     @api.model
     def create(self, vals):
@@ -230,27 +230,29 @@ class PaymentRequest(models.Model):
 
     @api.multi
     def action_confirm(self):
-        self.state = 'confirmed'
-        self.cost_center_pm_approved = None
-        self.cost_center_td_approved = None
-        self.cost_center_sd_approved = None
-        self.cost_center_ce_approved = None
-        if(self.cost_center_pm):
-            self.approval_next = self.cost_center_pm
-            self.approval_level_next = 'pm'
-            return
-        if(self.cost_center_td):
-            self.approval_next = self.cost_center_td
-            self.approval_level_next = 'td'
-            return 
-        if(self.cost_center_sd):
-            self.approval_next = self.cost_center_sd
-            self.approval_level_next = 'sd'
-            return 
-        if(self.cost_center_ce):
-            self.approval_next = self.cost_center_ce
-            self.approval_level_next = 'ce'
-            return     
+        for request in self:
+            request.cost_center_pm_approved = None
+            request.cost_center_td_approved = None
+            request.cost_center_sd_approved = None
+            request.cost_center_ce_approved = None
+            _logger.info('COST CENTER PM: ' + str( request.cost_center_pm))
+            request.state = 'confirmed'
+            if(request.cost_center_pm):
+                request.approval_next = request.cost_center_pm
+                request.approval_level_next = 'pm'
+                return
+            if(request.cost_center_td):
+                request.approval_next = request.cost_center_td
+                request.approval_level_next = 'td'
+                return 
+            if(request.cost_center_sd):
+                request.approval_next = request.cost_center_sd
+                request.approval_level_next = 'sd'
+                return 
+            if(request.cost_center_ce):
+                request.approval_next = request.cost_center_ce
+                request.approval_level_next = 'ce'
+                return     
     
     @api.multi
     def action_approve(self):
@@ -369,7 +371,7 @@ class PaymentRequest(models.Model):
             self.fi_ce_approved = self.approval_next
 
     #@api.onchange('quotation_id')
-    @api.depends('quotation_id','total_payment_amount_vnd')
+    @api.depends('quotation_id')
     def _onchange_quotation_id(self):
         for payment in self:
             
@@ -393,7 +395,7 @@ class PaymentRequest(models.Model):
             
 
             #REFRESH LIST COST_CENTER_PAYMENT_REQUEST
-            payment.cost_center_payment_requests = None
+            #payment.cost_center_payment_requests = None
             
             #SET APPROVAL
             company_info = self.env['hr.expense_approval.company'].search([('company','=',payment.quotation_id.company_id.id)])
@@ -408,23 +410,23 @@ class PaymentRequest(models.Model):
     def _compute_amount_vnd(self):
         for request in self:
                 #request.total_amount_vnd = request.total_amount * request.currency_rate
-                request.total_payment_amount_vnd = request.total_payment_amount * request.currency_rate
+                request.update({'total_payment_amount_vnd' : request.total_payment_amount * request.currency_rate})
 
-    @api.multi
-    def action_draft(self):
-        self.state = 'draft'
+    # @api.multi
+    # def action_draft(self):
+    #     self.state = 'draft'
 
-    @api.multi
-    def action_confirm(self):
-        self.state = 'confirmed'
+    # @api.multi
+    # def action_confirm(self):
+    #     self.state = 'confirmed'
 
-    @api.multi
-    def action_approve(self):
-        self.state = 'approved'
+    # @api.multi
+    # def action_approve(self):
+    #     self.state = 'approved'
 
-    @api.multi
-    def action_done(self):
-        self.state = 'done'
+    # @api.multi
+    # def action_done(self):
+    #     self.state = 'done'
 
     @api.depends('expense_line_ids.bank_amount','expense_line_ids.cash_amount')
     #@api.onchange('expense_line_ids')

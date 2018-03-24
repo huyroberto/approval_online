@@ -13,6 +13,7 @@ import json
 class CostCenterRequest(models.Model):
     _name = 'hr.expense_approval.request_cost_center'
     _description = u'Yêu cầu thanh toán cho từng mã dự toán'
+    #_inherit = ['mail.thread']
     request_quotation = fields.Many2one('hr.expense_approval.request_quotation',string='Đề xuất dự toán')
 
     name = fields.Char(string='Mã dự toán')
@@ -167,9 +168,15 @@ class QuotationRequest(models.Model):
 
     @api.model
     def create(self, vals):
+        # template_obj = self.env['mail.template'].sudo().search([('name','=','create_email_template')], limit=1)
+        # for request in self
+        #     template_obj.send_mail(request)
+        _logger.info('Send mail')
+        #self.send_mail_template(self.id)
+
         if vals.get('name', 'New') == 'New':  
             vals['name'] = self.env['ir.sequence'].next_by_code('hr.expense_approval.request_quotation') or 'New'
-
+	
         result = super(QuotationRequest, self).create(vals)
         return result
 
@@ -214,27 +221,30 @@ class QuotationRequest(models.Model):
 
     @api.multi
     def action_confirm(self):
-        self.state = 'confirmed'
-        self.cost_center_pm_approved = None
-        self.cost_center_td_approved = None
-        self.cost_center_sd_approved = None
-        self.cost_center_ce_approved = None
-        if(self.cost_center_pm):
-            self.approval_next = self.cost_center_pm
-            self.approval_level_next = 'pm'
-            return
-        if(self.cost_center_td):
-            self.approval_next = self.cost_center_td
-            self.approval_level_next = 'td'
-            return 
-        if(self.cost_center_sd):
-            self.approval_next = self.cost_center_sd
-            self.approval_level_next = 'sd'
-            return 
-        if(self.cost_center_ce):
-            self.approval_next = self.cost_center_ce
-            self.approval_level_next = 'ce'
-            return     
+        _logger.info('START CONFIRM')
+        for request in self:
+            request.cost_center_pm_approved = None
+            request.cost_center_td_approved = None
+            request.cost_center_sd_approved = None
+            request.cost_center_ce_approved = None
+            _logger.info('COST CENTER PM')# + (str)request.cost_center_pm)
+            request.state = 'confirmed'
+            if(request.cost_center_pm):
+                request.approval_next = request.cost_center_pm
+                request.approval_level_next = 'pm'
+                return
+            if(request.cost_center_td):
+                request.approval_next = request.cost_center_td
+                request.approval_level_next = 'td'
+                return 
+            if(request.cost_center_sd):
+                request.approval_next = request.cost_center_sd
+                request.approval_level_next = 'sd'
+                return 
+            if(request.cost_center_ce):
+                request.approval_next = request.cost_center_ce
+                request.approval_level_next = 'ce'
+                return     
 
     @api.multi
     def action_quotation_send(self):
@@ -243,8 +253,8 @@ class QuotationRequest(models.Model):
     @api.multi
     def send_mail_template(self, reciever_id):
         # Find the e-mail template
-        #template = self.env.ref('mail_template_demo.example_email_template')
-        template = self.env['ir.model.data'].get_object('approval_online', 'example_email_template')
+        template = self.env.ref('__export__.mail_template_20')
+        #template = self.env['ir.model.data'].get_object('approval_online', 'example_email_template')
 
         # Send out the e-mail template to the user
         self.env['mail.template'].browse(template.id).send_mail(reciever_id)
