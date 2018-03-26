@@ -148,13 +148,13 @@
                             <group>
                                 <group>
                                     <field name='fi_approval_level'/>
-                                    <field name="fi_ox" attrs="{'invisible':[('state','=','approved')]}"/>
-                                    <field name="fi_pm" attrs="{'invisible':[('state','=','approved')]}"/>
+                                    <field name="fi_ox" />
+                                    <field name="fi_pm" />
                                 </group>
                                 <group>
-                                    <field name="fi_td" attrs="{'invisible':[('state','=','approved')]}"/>
-                                    <field name="fi_sd" attrs="{'invisible':[('state','=','approved')]}"/>
-                                    <field name="fi_ce" attrs="{'invisible':[('state','=','approved')]}"/>
+                                    <field name="fi_td" />
+                                    <field name="fi_sd" />
+                                    <field name="fi_ce" />
                                 </group>
                             </group>
                         </page>

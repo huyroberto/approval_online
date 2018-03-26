@@ -1,22 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
-        <record id="example_email_template" model="mail.template">
-          <field name="name">Example e-mail template</field>
-          <field name="email_from">${object.company_id and object.company_id.email or ''}</field>
-          <field name="subject">Congratz ${object.name}</field>
-          <field name="email_to">${object.email|safe}</field>
-          <field name="lang">${object.lang}</field>
-          <field name="model_id" ref="base.model_res_partner"/>
-          <field name="auto_delete" eval="True"/>
-	  <field name="body_html">
-            <![CDATA[
-	      <p>Dear ${(object.name)},<br/><br/>
-	      Approval this payment!<br/></p>
-              Regards,<br/>
-              ${(object.company_id.name)}
-	    ]]>
-	  </field>
+        <!-- QUOTATION EMAILS -->
+        <record id="request_quotation_new" model="mail.template">
+            <field name="name">Email Quotation Request - New</field>
+            <field name="email_from">${object.company_id and object.company_id.email or ''}</field>
+            <field name="subject">Congratz ${object.name}</field>
+            <field name="email_to">${object.email|safe}</field>
+            <field name="lang">${object.lang}</field>
+            <field name="model_id" ref="base.model_res_partner"/>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html">
+                    <![CDATA[
+                <p>Dear ${(object.name)},<br/><br/>
+                Approval this payment!<br/></p>
+                    Regards,<br/>
+                    ${(object.company_id.name)}
+                ]]>
+            </field>
+       </record>
+
+       <record id="request_quotation_confirm" model="mail.template">
+            <field name="name">Email Quotation Request - Confirm</field>
+            <field name="email_from">${object.company_id and object.company_id.email or ''}</field>
+            <field name="subject">Congratz ${object.name}</field>
+            <field name="email_to">${object.email|safe}</field>
+            <field name="lang">${object.lang}</field>
+            <field name="model_id" ref="base.model_res_partner"/>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html">
+                    <![CDATA[
+                <p>Dear ${(object.name)},<br/><br/>
+                Approval this payment!<br/></p>
+                    Regards,<br/>
+                    ${(object.company_id.name)}
+                ]]>
+            </field>
+       </record>
+
+       <record id="request_quotation_approve" model="mail.template">
+            <field name="name">Email Quotation Request - Confirm</field>
+            <field name="email_from">${object.company_id and object.company_id.email or ''}</field>
+            <field name="subject">Congratz ${object.name}</field>
+            <field name="email_to">${object.email|safe}</field>
+            <field name="lang">${object.lang}</field>
+            <field name="model_id" ref="base.model_res_partner"/>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html">
+                    <![CDATA[
+                <p>Dear ${(object.name)},<br/><br/>
+                Approval this payment!<br/></p>
+                    Regards,<br/>
+                    ${(object.company_id.name)}
+                ]]>
+            </field>
+       </record>
+
+       <record id="request_quotation_done" model="mail.template">
+            <field name="name">Email Quotation Request - Confirm</field>
+            <field name="email_from">${object.company_id and object.company_id.email or ''}</field>
+            <field name="subject">Congratz ${object.name}</field>
+            <field name="email_to">${object.email|safe}</field>
+            <field name="lang">${object.lang}</field>
+            <field name="model_id" ref="base.model_res_partner"/>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html">
+                    <![CDATA[
+                <p>Dear ${(object.name)},<br/><br/>
+                Approval this payment!<br/></p>
+                    Regards,<br/>
+                    ${(object.company_id.name)}
+                ]]>
+            </field>
        </record>
     </data>
 </odoo>

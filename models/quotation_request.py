@@ -172,7 +172,7 @@ class QuotationRequest(models.Model):
         # for request in self
         #     template_obj.send_mail(request)
         _logger.info('Send mail')
-        #self.send_mail_template(self.id)
+        #self.send_mail_template('request_quotation.new')
 
         if vals.get('name', 'New') == 'New':  
             vals['name'] = self.env['ir.sequence'].next_by_code('hr.expense_approval.request_quotation') or 'New'
@@ -251,13 +251,12 @@ class QuotationRequest(models.Model):
         return True
 
     @api.multi
-    def send_mail_template(self, reciever_id):
+    def send_mail_template(self,template_id, receiver_id):
         # Find the e-mail template
-        template = self.env.ref('__export__.mail_template_20')
-        #template = self.env['ir.model.data'].get_object('approval_online', 'example_email_template')
-
+        template = self.env.ref(template_id)#'hr_expense_approval.request_quotation_new')
         # Send out the e-mail template to the user
-        self.env['mail.template'].browse(template.id).send_mail(reciever_id)
+        #for request in self:
+        self.env['mail.template'].browse(template.id).send_mail(receiver_id)
         _logger.info('Send mail')
         
     @api.multi
@@ -271,7 +270,7 @@ class QuotationRequest(models.Model):
             self.state = 'approved'
         else:
             _logger.info('send mail for next approval')
-            self.send_mail_template(self.approval_next.id)
+            self.send_mail_template('hr_expense_approval.request_quotation_new',self.approval_next.id)
             
         if(self.approval_level_next == 'pm'):
             self.cost_center_pm_approved = self.approval_next

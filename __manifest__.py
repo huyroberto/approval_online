@@ -11,7 +11,7 @@
     'description': 'Topica- Expense Book and Approval Online',
     'author':'Hapi Solutions',
     'website': 'http://erp.hapi.solutions',
-    'depends': ['base','hr','mail'],
+    'depends': ['base','account','hr','mail'],
     'data': [
         'security/ir.model.access.csv',
         'views/hr_expense_approval_views.xml',

@@ -8,3 +8,7 @@ access_hr_expense_approval_6,hr.expense_approval.activity.admin,model_hr_expense
 access_hr_expense_approval_7,hr.expense_approval.level.admin,model_hr_expense_approval_cost_center_level,base.group_user,1,1,1,1
 access_hr_expense_approval_8,hr.expense_approval.quotation.user,model_hr_expense_approval_request_cost_center,base.group_user,1,1,1,1
 access_hr_expense_approval_9,hr.expense_approval.user,model_hr_expense_approval_cost_center_code,base.group_user,1,1,1,1
+access_hr_expense_approval_10,hr.expense_approval.user,model_hr_expense_approval_request_cost_center_payment,base.group_user,1,1,1,1
+access_hr_expense_approval_11,hr.expense_approval.user,model_hr_expense_approval_company,base.group_user,1,1,1,1
+access_hr_expense_approval_12,hr.expense_approval.user,model_hr_expense_approval_request_cost_center_payment,base.group_user,1,1,1,1
+access_hr_expense_approval_13,hr.expense_approval.user,model_hr_expense_approval_company_level,base.group_user,1,1,1,1
