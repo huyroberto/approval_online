@@ -251,12 +251,14 @@ class QuotationRequest(models.Model):
         return True
 
     @api.multi
-    def send_mail_template(self,template_id, receiver_id):
+    def send_mail_template(self,template_id):
         # Find the e-mail template
-        template = self.env.ref(template_id)#'hr_expense_approval.request_quotation_new')
+        template_id = 'hr_expense_approval.request_quotation_'+template_id
+
+        template = self.env.ref(template_id)#'new')
         # Send out the e-mail template to the user
         #for request in self:
-        self.env['mail.template'].browse(template.id).send_mail(receiver_id)
+        self.env['mail.template'].browse(template.id).send_mail(self.id)#receiver_id)
         _logger.info('Send mail')
         
     @api.multi
@@ -270,7 +272,7 @@ class QuotationRequest(models.Model):
             self.state = 'approved'
         else:
             _logger.info('send mail for next approval')
-            self.send_mail_template('hr_expense_approval.request_quotation_new',self.approval_next.id)
+            self.send_mail_template('approve')#'hr_expense_approval.request_quotation_new',self.approval_next.id)
             
         if(self.approval_level_next == 'pm'):
             self.cost_center_pm_approved = self.approval_next
