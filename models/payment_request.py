@@ -324,9 +324,9 @@ class PaymentRequest(models.Model):
         
         if(self.fi_approval_level.level == self.approval_level_next):
             _logger.info('CAP PHE DUYET CUOI CUNG')
+            datepayment = datetime.strptime(self.payment_date, "%Y-%m-%d")
             for request in self.cost_center_payment_requests:
                 avaiable_url = 'http://training.kehoach.osscar.topica.vn/api/ApiDBF100/CreatePending'
-                datepayment = datetime.strptime(request.payment_date, "%Y-%m-%d")
                 avaiable_params = {
                                         'soSerial':self.quotation_id.name + str(request.id),
                                         'count':1,
@@ -469,23 +469,6 @@ class PaymentRequestLine(models.Model):
         ('open', 'Chưa thanh toán'),
         ('paid', 'Đã thanh toán')
         ],  string='Trạng thái', copy=False, index=True)
-
-    # attachments = fields.Many2many(
-    #                   comodel_name="ir.attachment", relation="request_quotation_ir_attachment_relation",
-	# 	       column1="quotation_id", column2="attachment_id", string="Hồ sơ, chứng từ")
-    # @api.multi
-    # def _compute_attachment_number(self):
-    #     attachment_data = self.env['ir.attachment'].read_group([('res_model', '=', 'hr.expense_approval.request_payment.line'), ('res_id', 'in', self.ids)], ['res_id'], ['res_id'])
-    #     attachment = dict((data['res_id'], data['res_id_count']) for data in attachment_data)
-    #     for request_payment in self:
-    #         request_payment.attachment_number = attachment.get(request_payment.id, 0)
-    # @api.multi
-    # def action_get_attachment_view(self):
-    #     self.ensure_one()
-    #     res = self.env['ir.actions.act_window'].for_xml_id('base', 'action_attachment')
-    #     res['domain'] = [('res_model', '=', 'hr.expense_approval.request_payment.line'), ('res_id', 'in', self.ids)]
-    #     res['context'] = {'default_res_model': 'hr.expense_approval.request_payment.line', 'default_res_id': self.id}
-    #     return res
 
     @api.depends('cash_amount', 'bank_amount')
     def _compute_total_amount(self):
