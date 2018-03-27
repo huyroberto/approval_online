@@ -226,6 +226,18 @@ class PaymentRequest(models.Model):
 
             _logger.info('Total amount ', str(_total_amount))
             request.update({'total_payment_amount':_total_amount})
+
+    @api.multi
+    def send_mail_template(self,template_id):
+        # Find the e-mail template
+        template_id = 'hr_expense_approval.request_payment_'+template_id
+
+        template = self.env.ref(template_id)#'new')
+        # Send out the e-mail template to the user
+        #for request in self:
+        self.env['mail.template'].browse(template.id).send_mail(self.id)#receiver_id)
+        _logger.info('Send mail')
+
             
     @api.model
     def create(self, vals):
@@ -248,6 +260,9 @@ class PaymentRequest(models.Model):
             request.cost_center_ce_approved = None
             _logger.info('COST CENTER PM: ' + str( request.cost_center_pm))
             request.state = 'confirmed'
+            
+            request.send_mail_template('confirm')
+            
             if(request.cost_center_pm):
                 request.approval_next = request.cost_center_pm
                 request.approval_level_next = 'pm'
@@ -273,6 +288,7 @@ class PaymentRequest(models.Model):
     def action_approve(self):
         if(self.approval_next.id != self.env.uid):
             return True
+        self.send_mail_template('approve')
         
         if(self.approval_level.level == self.approval_level_next):
             _logger.info('CAP PHE DUYET CUOI CUNG')
@@ -346,7 +362,9 @@ class PaymentRequest(models.Model):
     def action_done(self):
         if(self.approval_next.id != self.env.uid):
             return True
-        
+
+        self.send_mail_template('done')
+
         if(self.fi_approval_level.level == self.approval_level_next):
             _logger.info('CAP PHE DUYET CUOI CUNG')
             datepayment = datetime.strptime(self.payment_date, "%Y-%m-%d")
