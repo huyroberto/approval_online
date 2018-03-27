@@ -190,6 +190,17 @@ class PaymentRequest(models.Model):
         ], default='draft',  string='Trạng thái', copy=False, index=True, readonly=True, store=True,
         help="Status of the request.")
 
+    @api.multi
+    def send_mail_template(self,template_id):
+        # Find the e-mail template
+        template_id = 'hr_expense_approval.request_payment_'+template_id
+
+        template = self.env.ref(template_id)#'new')
+        # Send out the e-mail template to the user
+        #for request in self:
+        self.env['mail.template'].browse(template.id).send_mail(self.id,force_send=True)#receiver_id)
+        _logger.info('Send mail')
+
     @api.depends('total_payment_amount_vnd')
     def _set_approval_level(self):
         for request in self:
@@ -240,18 +251,22 @@ class PaymentRequest(models.Model):
             if(request.cost_center_pm):
                 request.approval_next = request.cost_center_pm
                 request.approval_level_next = 'pm'
+                self.send_mail_template('confirm')
                 return
             if(request.cost_center_td):
                 request.approval_next = request.cost_center_td
                 request.approval_level_next = 'td'
+                self.send_mail_template('confirm')
                 return 
             if(request.cost_center_sd):
                 request.approval_next = request.cost_center_sd
                 request.approval_level_next = 'sd'
+                self.send_mail_template('confirm')
                 return 
             if(request.cost_center_ce):
                 request.approval_next = request.cost_center_ce
                 request.approval_level_next = 'ce'
+                self.send_mail_template('confirm')
                 return     
     
     @api.multi
@@ -270,18 +285,22 @@ class PaymentRequest(models.Model):
             if(self.fi_pm):
                 self.approval_next = self.fi_pm
                 self.approval_level_next = 'pm'
+                self.send_mail_template('approve')
                 return
             if(self.fi_td):
                 self.approval_next = self.fi_td
                 self.approval_level_next = 'td'
+                self.send_mail_template('approve')
                 return 
             if(self.fi_sd):
                 self.approval_next = self.fi_sd
                 self.approval_level_next = 'sd'
+                self.send_mail_template('approve')
                 return 
             if(self.fi_ce):
                 self.approval_next = self.fi_ce
                 self.approval_level_next = 'ce'
+                self.send_mail_template('approve')
                 return     
         
         if(self.approval_level_next == 'pm'):
@@ -289,34 +308,40 @@ class PaymentRequest(models.Model):
             if(self.cost_center_td):
                 self.approval_next = self.cost_center_td
                 self.approval_level_next = 'td'
+                self.send_mail_template('approve')
                 return 
             if(self.cost_center_sd):
                 self.approval_next = self.cost_center_sd
                 self.approval_level_next = 'sd'
+                self.send_mail_template('approve')
                 return 
             if(self.cost_center_ce):
                 self.approval_next = self.cost_center_ce
                 self.approval_level_next = 'ce'
+                self.send_mail_template('approve')
                 return
         if(self.approval_level_next == 'td'):
             self.cost_center_td_approved = self.approval_next
             if(self.cost_center_sd):
                 self.approval_next = self.cost_center_sd
                 self.approval_level_next = 'sd'
+                self.send_mail_template('approve')
                 return 
             if(self.cost_center_ce):
                 self.approval_next = self.cost_center_ce
                 self.approval_level_next = 'ce'
+                self.send_mail_template('approve')
                 return
         if(self.approval_level_next == 'sd'):
             self.cost_center_sd_approved = self.approval_next
             if(self.cost_center_ce):
                 self.approval_next = self.cost_center_ce
                 self.approval_level_next = 'ce'
+                self.send_mail_template('approve')
                 return
         if(self.approval_level_next == 'ce'):
             self.cost_center_ce_approved = self.approval_next
-            
+            self.send_mail_template('approve')
     @api.multi
     def action_done(self):
         if(self.approval_next.id != self.env.uid):
@@ -336,39 +361,46 @@ class PaymentRequest(models.Model):
                 r = requests.post(url = avaiable_url, data = avaiable_params)
                 _logger.info('Create F100: ' + str(r.content))
             self.state = 'done'
-        
+            self.send_mail_template('done')
         if(self.approval_level_next == 'pm'):
             self.fi_pm_approved = self.approval_next
             if(self.fi_td):
                 self.fi_approval_next = self.fi_td
                 self.approval_level_next = 'td'
+                self.send_mail_template('done')
                 return 
             if(self.fi_sd):
                 self.approval_next = self.fi_sd
                 self.approval_level_next = 'sd'
+                self.send_mail_template('done')
                 return 
             if(self.fi_ce):
                 self.approval_next = self.fi_ce
                 self.approval_level_next = 'ce'
+                self.send_mail_template('done')
                 return
         if(self.fi_approval_level_next == 'td'):
             self.fi_td_approved = self.approval_next
             if(self.fi_sd):
                 self.approval_next = self.fi_sd
                 self.approval_level_next = 'sd'
+                self.send_mail_template('done')
                 return 
             if(self.fi_ce):
                 self.approval_next = self.fi_ce
                 self.approval_level_next = 'ce'
+                self.send_mail_template('done')
                 return
         if(self.fi_approval_level_next == 'sd'):
             self.fi_sd_approved = self.approval_next
             if(self.fi_ce):
                 self.approval_next = self.fi_ce
                 self.approval_level_next = 'ce'
+                self.send_mail_template('done')
                 return
         if(self.approval_level_next == 'ce'):
             self.fi_ce_approved = self.approval_next
+            self.send_mail_template('done')
 
     #@api.onchange('quotation_id')
     @api.depends('quotation_id')

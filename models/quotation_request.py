@@ -232,18 +232,22 @@ class QuotationRequest(models.Model):
             if(request.cost_center_pm):
                 request.approval_next = request.cost_center_pm
                 request.approval_level_next = 'pm'
+                self.send_mail_template('confirm')
                 return
             if(request.cost_center_td):
                 request.approval_next = request.cost_center_td
                 request.approval_level_next = 'td'
+                self.send_mail_template('confirm')
                 return 
             if(request.cost_center_sd):
                 request.approval_next = request.cost_center_sd
                 request.approval_level_next = 'sd'
+                self.send_mail_template('confirm')
                 return 
             if(request.cost_center_ce):
                 request.approval_next = request.cost_center_ce
                 request.approval_level_next = 'ce'
+                self.send_mail_template('confirm')
                 return     
 
     @api.multi
@@ -251,12 +255,14 @@ class QuotationRequest(models.Model):
         return True
 
     @api.multi
-    def send_mail_template(self,template_id, receiver_id):
+    def send_mail_template(self,template_id):
         # Find the e-mail template
-        template = self.env.ref(template_id)#'hr_expense_approval.request_quotation_new')
+        template_id = 'hr_expense_approval.request_quotation_'+template_id
+
+        template = self.env.ref(template_id)#'new')
         # Send out the e-mail template to the user
         #for request in self:
-        self.env['mail.template'].browse(template.id).send_mail(receiver_id)
+        self.env['mail.template'].browse(template.id).send_mail(self.id,force_send=True)#receiver_id)
         _logger.info('Send mail')
         
     @api.multi
@@ -268,43 +274,49 @@ class QuotationRequest(models.Model):
         if(self.approval_level.level == self.approval_level_next):
             _logger.info('CAP PHE DUYET CUOI CUNG')
             self.state = 'approved'
+            return
         else:
             _logger.info('send mail for next approval')
-            self.send_mail_template('hr_expense_approval.request_quotation_new',self.approval_next.id)
             
         if(self.approval_level_next == 'pm'):
             self.cost_center_pm_approved = self.approval_next
             if(self.cost_center_td):
                 self.approval_next = self.cost_center_td
                 self.approval_level_next = 'td'
+                self.send_mail_template('approve')
                 return 
             if(self.cost_center_sd):
                 self.approval_next = self.cost_center_sd
                 self.approval_level_next = 'sd'
+                self.send_mail_template('approve')
                 return 
             if(self.cost_center_ce):
                 self.approval_next = self.cost_center_ce
                 self.approval_level_next = 'ce'
+                self.send_mail_template('approve')
                 return
         if(self.approval_level_next == 'td'):
             self.cost_center_td_approved = self.approval_next
             if(self.cost_center_sd):
                 self.approval_next = self.cost_center_sd
                 self.approval_level_next = 'sd'
+                self.send_mail_template('approve')
                 return 
             if(self.cost_center_ce):
                 self.approval_next = self.cost_center_ce
                 self.approval_level_next = 'ce'
+                self.send_mail_template('approve')
                 return
         if(self.approval_level_next == 'sd'):
             self.cost_center_sd_approved = self.approval_next
             if(self.cost_center_ce):
                 self.approval_next = self.cost_center_ce
                 self.approval_level_next = 'ce'
+                self.send_mail_template('approve')
                 return
         if(self.approval_level_next == 'ce'):
             self.cost_center_ce_approved = self.approval_next
-   
+            self.send_mail_template('approve')
     @api.multi
     def action_done(self):
         if(self.fi_ox.id != self.env.uid):
@@ -330,6 +342,7 @@ class QuotationRequest(models.Model):
             _logger.info('Create F100: ' + str(avaiable_params))
             _logger.info('Create F100: ' + str(r.content))
         self.state = 'done'
+        self.send_mail_template('done')
        
     
     @api.depends('total_amount', 'currency_id','currency_rate')
