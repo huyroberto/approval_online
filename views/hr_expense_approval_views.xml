@@ -75,9 +75,9 @@
                             <field name="fi_ox"/>
                         </group>
                     </group>
-                    <group  attrs="{'invisible':['|',('state','=','draft'),('state','=','confirmed')]}">
+                    <!-- <group  attrs="{'invisible':['|',('state','=','draft'),('state','=','confirmed')]}">
                         <field name='financial_activity_desc'/>
-                    </group>
+                    </group> -->
                     <group>
                         <group>
                             <field name="company_id"/>
@@ -117,12 +117,12 @@
                         <page string='Thông tin phê duyệt'>
                             <group>
                                 <group>
-                                    <field name='approval_level'/>
+                                    <!-- <field name='approval_level'/> -->
                                     <field name="employee_id"/>
                                     <field name="cost_center_pm"/>
+                                    <field name="cost_center_td"/>
                                 </group>
                                 <group>
-                                    <field name="cost_center_td"/>
                                     <field name="cost_center_sd"/>
                                     <field name="cost_center_ce"/>
                                 </group>

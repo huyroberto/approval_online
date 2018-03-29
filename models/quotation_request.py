@@ -8,6 +8,7 @@ _logger = logging.getLogger(__name__)
 import requests
 import httplib, urllib
 import json
+from openerp.exceptions import ValidationError
 
 
 class CostCenterRequest(models.Model):
@@ -70,7 +71,7 @@ class QuotationRequest(models.Model):
             , states={'confirmed': [('readonly', True)], 'approved': [('readonly', True)], 'done': [('readonly', True)]}
         )
     
-    financial_activity = fields.Many2one('hr.expense_approval.financial_activity',string="Hoạt động Tài chính",store=True)
+    financial_activity = fields.Many2one('hr.expense_approval.financial_activity',string="Loại chi phí",store=True)
     financial_activity_desc = fields.Text(compute='_set_financial_activity')
     cost_center_requests = fields.One2many(
                 'hr.expense_approval.request_cost_center'
@@ -80,14 +81,14 @@ class QuotationRequest(models.Model):
                 , states={'confirmed': [('readonly', True)], 'approved': [('readonly', True)], 'done': [('readonly', True)]}
                 , ondelete="cascade", copy=False)
     #Ngày đề nghị
-    payment_date = fields.Date(default=fields.Date.context_today, string="Ngày đề nghị thanh toán"
+    payment_date = fields.Date(default=fields.Date.context_today, string="Ngày đề nghị TT"
                 , states={'confirmed': [('readonly', True)], 'approved': [('readonly', True)], 'done': [('readonly', True)]}
                 , required=True)
     
     #Người đề nghị
     # , track_visibility='onchange'
     employee_id =fields.Many2one('res.users', string='Người yêu cầu', index=True, default=lambda self: self.env.user, readonly=True)
-    company_id = fields.Many2one('res.company', string='Công ty'
+    company_id = fields.Many2one('res.company', string='Pháp nhân'
                 , states={'confirmed': [('readonly', True)], 'approved': [('readonly', True)], 'done': [('readonly', True)]}
                 , default=lambda self: self.env.user.company_id, store=True)
     
@@ -108,7 +109,7 @@ class QuotationRequest(models.Model):
     total_amount_text = fields.Char(string='Số tiền (VND) bằng chữ')
     
     #Approval
-    approval_level = fields.Many2one('hr.expense_approval.cost_center_level',string='Cấp phê duyệt', compute='_set_approval_level',readonly=True)
+    approval_level = fields.Many2one('hr.expense_approval.cost_center_level',string='Cần duyệt cấp', compute='_set_approval_level',readonly=True)
     approval_level_next = fields.Selection([
         ('ox','OX'),
         ('pm', 'PM'),
@@ -122,16 +123,16 @@ class QuotationRequest(models.Model):
     #company_financial_approval = fields.Many2one('hr.expense_approval.company')
     #approval_list = fields.Char(string = "Danh sách phê duyệt", compute='_set_approval_level',store=True)
 
-    cost_center_pm = fields.Many2one('res.users', string="Phê duyệt cấp PM"
+    cost_center_pm = fields.Many2one('res.users', string="Cấp PM"
                 , states={'confirmed': [('readonly', True)], 'approved': [('readonly', True)], 'done': [('readonly', True)]}
                 ,store=True)
     cost_center_td = fields.Many2one('res.users'
                 , states={'approved': [('readonly', True)], 'done': [('readonly', True)]}
-                , string="Phê duyệt cấp TD",store=True)
-    cost_center_sd = fields.Many2one('res.users', string="Phê duyệt cấp SD",store=True
+                , string="Cấp TD",store=True)
+    cost_center_sd = fields.Many2one('res.users', string="Cấp SD",store=True
             , states={'approved': [('readonly', True)], 'done': [('readonly', True)]}
     )
-    cost_center_ce = fields.Many2one('res.users', string="Phê duyệt cấp CE",store=True
+    cost_center_ce = fields.Many2one('res.users', string="Cấp CE",store=True
             , states={'approved': [('readonly', True)], 'done': [('readonly', True)]})
     cost_center_ceo = fields.Many2one('res.users', string="Giám đốc",store=True
             , states={'approved': [('readonly', True)], 'done': [('readonly', True)]})
@@ -143,10 +144,10 @@ class QuotationRequest(models.Model):
     cost_center_ce_approved = fields.Many2one('res.users', string="Cấp CE",store=True,readonly=True)
     cost_center_ceo_approved = fields.Many2one('res.users', string="Giám đốc",store=True,readonly=True)
 
-    fi_ox = fields.Many2one('res.users', string="Phê duyệt cấp OX"
+    fi_ox = fields.Many2one('res.users', string="Tài chính duyệt"
         , states={'done': [('readonly', True)]}
     )
-    fi_plan_approver_id = fields.Many2one('res.users', string="Phê duyệt cấp Kế hoạch")
+    fi_plan_approver_id = fields.Many2one('res.users', string="Cấp Kế hoạch")
     
 
     payment_request_id = fields.Char(string="Payment Request", readonly=True)
@@ -179,6 +180,12 @@ class QuotationRequest(models.Model):
 	
         result = super(QuotationRequest, self).create(vals)
         return result
+
+    @api.constrains('payment_date')
+    def check_payment_date(self):
+        if datetime.strptime(self.payment_date,'%Y-%m-%d').date() <= datetime.now().date():
+            raise ValidationError("Ngày thanh toán phải sau ngày hiện tại") 
+ 
 
     @api.depends('financial_activity')
     def _set_financial_activity(self):
@@ -273,6 +280,7 @@ class QuotationRequest(models.Model):
                 
         if(self.approval_level.level == self.approval_level_next):
             _logger.info('CAP PHE DUYET CUOI CUNG')
+            self.approval_level_next = None
             self.state = 'approved'
             return
         else:

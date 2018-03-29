@@ -71,11 +71,11 @@ class PaymentRequest(models.Model):
 
      #Ngày đề nghị
     date = fields.Date(default=fields.Date.context_today, string="Ngày yêu cầu",readonly=True)
-    payment_date = fields.Date(string="Ngày đề nghị thanh toán",store=True, readonly=True,compute='_onchange_quotation_id')
-    financial_activity = fields.Many2one('hr.expense_approval.financial_activity',string="Hoạt động Tài chính",readonly=True, compute='_onchange_quotation_id')
+    payment_date = fields.Date(string="Ngày đề nghị TT",store=True, readonly=True,compute='_onchange_quotation_id')
+    financial_activity = fields.Many2one('hr.expense_approval.financial_activity',string="Loại chi phí",readonly=True, compute='_onchange_quotation_id')
     #Người đề nghị
     employee_id = fields.Many2one('res.users', string="Người yêu cầu", index=True, readonly=True, compute='_onchange_quotation_id')
-    company_id = fields.Many2one('res.company', string='Công ty', readonly=True, compute='_onchange_quotation_id')
+    company_id = fields.Many2one('res.company', string='Pháp nhân', readonly=True, compute='_onchange_quotation_id')
     location_id = fields.Many2one('hr.expense_approval.location', string="Địa điểm",readonly=True, compute='_onchange_quotation_id')
 
      #quotation request
@@ -93,7 +93,7 @@ class PaymentRequest(models.Model):
     #Amount
     #Số tiền
     currency_id = fields.Many2one('res.currency', string='Tiền tệ thanh toán',readonly=True ,compute='_onchange_quotation_id')
-    currency_rate = fields.Float(string="Tỷ giá", compute='_onchange_quotation_id', store=True)
+    currency_rate = fields.Float(string="Tỷ giá", default=1, store=True)
     #total_amount = fields.Float(string='Đề xuất', readonly=True)
     #total_amount_vnd = fields.Float(string='Đề xuất(VND)', store=True, compute='_compute_amount_vnd')
     total_payment_amount = fields.Float(string='Thanh toán',  compute='_get_total_request_amount', readonly=True, store=True)
@@ -101,23 +101,23 @@ class PaymentRequest(models.Model):
     #total_amount_text = fields.Char(string='Đề xuất(VND) bằng chữ',readonly=True)
 
     total_line_cash_amount = fields.Float(string='Tiền mặt', compute='_compute_totalAmount', store=True, readonly=True)
-    total_line_bank_amount = fields.Float(string='Chuyển khoản ngân hàng', compute='_compute_totalAmount', store=True, readonly=True)
+    total_line_bank_amount = fields.Float(string='Chuyển khoản', compute='_compute_totalAmount', store=True, readonly=True)
 
 
     attachments = fields.Many2many(
                       comodel_name="ir.attachment", relation="request_quotation_ir_attachment_relation",
 		       column1="quotation_id", column2="attachment_id", string="Hồ sơ, chứng từ")
     
-    cost_center_pm = fields.Many2one('res.users', string="Phê duyệt cấp PM"
+    cost_center_pm = fields.Many2one('res.users', string="Cấp PM"
                 , states={'confirmed': [('readonly', True)], 'approved': [('readonly', True)], 'done': [('readonly', True)]}
                 ,store=True)
     cost_center_td = fields.Many2one('res.users'
                 , states={'approved': [('readonly', True)], 'done': [('readonly', True)]}
-                , string="Phê duyệt cấp TD",store=True)
-    cost_center_sd = fields.Many2one('res.users', string="Phê duyệt cấp SD",store=True
+                , string="Cấp TD",store=True)
+    cost_center_sd = fields.Many2one('res.users', string="Cấp SD",store=True
             , states={'approved': [('readonly', True)], 'done': [('readonly', True)]}
     )
-    cost_center_ce = fields.Many2one('res.users', string="Phê duyệt cấp CE",store=True
+    cost_center_ce = fields.Many2one('res.users', string="Cấp CE",store=True
             , states={'approved': [('readonly', True)], 'done': [('readonly', True)]})
     cost_center_ceo = fields.Many2one('res.users', string="Giám đốc",store=True
             , states={'approved': [('readonly', True)], 'done': [('readonly', True)]})
@@ -131,22 +131,21 @@ class PaymentRequest(models.Model):
 
 
     fi_ox = fields.Many2one('res.users', string="OX phụ trách"
-                , readonly=True
                 , compute='_onchange_quotation_id'
                 ,store=True)
-    fi_pm = fields.Many2one('res.users', string="Phê duyệt cấp PM"
+    fi_pm = fields.Many2one('res.users', string="Cấp PM"
                 , readonly=True
                 , compute='_onchange_quotation_id'
                 ,store=True)
     fi_td = fields.Many2one('res.users'
                 , readonly=True
                 , compute='_onchange_quotation_id'
-                , string="Phê duyệt cấp TD",store=True)
-    fi_sd = fields.Many2one('res.users', string="Phê duyệt cấp SD",store=True
+                , string="Cấp TD",store=True)
+    fi_sd = fields.Many2one('res.users', string="Cấp SD",store=True
             , compute='_onchange_quotation_id'
             , readonly=True
     )
-    fi_ce = fields.Many2one('res.users', string="Phê duyệt cấp CE",store=True
+    fi_ce = fields.Many2one('res.users', string="Cấp CE",store=True
             , compute='_onchange_quotation_id'
             , readonly=True)
     fi_ceo = fields.Many2one('res.users', string="Giám đốc",store=True
@@ -160,8 +159,8 @@ class PaymentRequest(models.Model):
     fi_ce_approved = fields.Many2one('res.users', string="Cấp CE",store=True,readonly=True)
     fi_ceo_approved = fields.Many2one('res.users', string="Giám đốc",store=True,readonly=True)
 
-    approval_level = fields.Many2one('hr.expense_approval.cost_center_level',string='Cấp phê duyệt', compute='_set_approval_level',readonly=True, store=True)
-    fi_approval_level = fields.Many2one('hr.expense_approval.company_level',string='Cấp phê duyệt', compute='_set_approval_level',readonly=True, store=True)
+    approval_level = fields.Many2one('hr.expense_approval.cost_center_level',string='Cần duyệt cấp', compute='_set_approval_level',readonly=True, store=True)
+    fi_approval_level = fields.Many2one('hr.expense_approval.company_level',string='Cần duyệt cấp', compute='_set_approval_level',readonly=True, store=True)
     approval_next =  fields.Many2one('res.users', string="Người phê duyệt tiếp", compute='_compute_cost_center_amount', readonly=True,store=True)
      #Approval
     approval_level_next = fields.Selection([
@@ -193,7 +192,7 @@ class PaymentRequest(models.Model):
     @api.multi
     def send_mail_template(self,template_id):
         # Find the e-mail template
-        template_id = 'hr_expense_approval.request_payment_'+template_id
+        template_id = 'hr_expense_approval.request_payment_' + template_id
 
         template = self.env.ref(template_id)#'new')
         # Send out the e-mail template to the user
@@ -434,7 +433,7 @@ class PaymentRequest(models.Model):
             #payment.name = payment.quotation_id.name
             payment.financial_activity = payment.quotation_id.financial_activity.id
             payment.currency_id = payment.quotation_id.currency_id.id
-            payment.currency_rate = payment.quotation_id.currency_rate
+            # payment.currency_rate = payment.quotation_id.currency_rate
 
             payment.cost_center_pm = payment.quotation_id.cost_center_pm
             payment.cost_center_td = payment.quotation_id.cost_center_td
