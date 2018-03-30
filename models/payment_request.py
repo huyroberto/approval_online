@@ -82,8 +82,9 @@ class PaymentRequest(models.Model):
     quotation_id = fields.Many2one('hr.expense_approval.request_quotation',
                                           string='Đề xuất dự toán')
     cost_center_payment_requests = fields.One2many(
-                'hr.expense_approval.request_cost_center_payment'
+                'hr.expense_approval.request_cost_center'
                 , 'request_payment'
+                , domain="[('request_quotation','=',quotation_id.id)]"
                 , string='Yêu cầu mã dự toán'
                 #, onchange='_get_total_request_amount'
                 , states={'confirmed': [('readonly', True)], 'approved': [('readonly', True)], 'done': [('readonly', True)], 'closed': [('readonly', True)]}
@@ -220,10 +221,11 @@ class PaymentRequest(models.Model):
         for request in self:
             _total_amount = 0
             for line in request.cost_center_payment_requests:
+                if(line):
                 #line.update({'avaiable_amount':100000})
-                _total_amount += line.payment_amount
+                    _total_amount += line.payment_amount
 
-            _logger.info('Total amount ', str(_total_amount))
+            #_logger.info('Total amount ', str(_total_amount))
             request.update({'total_payment_amount':_total_amount})
 
     @api.multi
@@ -444,7 +446,7 @@ class PaymentRequest(models.Model):
             
 
             #REFRESH LIST COST_CENTER_PAYMENT_REQUEST
-            #payment.cost_center_payment_requests = None
+            payment.cost_center_payment_requests = payment.quotation_id.cost_center_requests
             
             #SET APPROVAL
             company_info = self.env['hr.expense_approval.company'].search([('company','=',payment.quotation_id.company_id.id)])

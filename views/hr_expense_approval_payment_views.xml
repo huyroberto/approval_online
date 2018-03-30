@@ -108,7 +108,7 @@
                      <notebook>
                         <page string='Yêu cầu theo mã dự toán'>
                             <field name='cost_center_payment_requests' mode="tree,kanban">
-                                <tree string="Yêu cầu cấp dự toán" editable="bottom" context="{'default_payment_date' : payment_date}">
+                                <tree string="Yêu cầu cấp dự toán"  editable ='bottom' context="{'default_payment_date' : payment_date}">
                                     <field name="cost_center_id"/>
                                     <field name="cost_center_desc"/>
                                     <field name="amount"/>

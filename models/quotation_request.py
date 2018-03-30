@@ -16,6 +16,7 @@ class CostCenterRequest(models.Model):
     _description = u'Yêu cầu thanh toán cho từng mã dự toán'
     #_inherit = ['mail.thread']
     request_quotation = fields.Many2one('hr.expense_approval.request_quotation',string='Đề xuất dự toán')
+    request_payment = fields.Many2one('hr.expense_approval.request_payment',string='Thanh toán dự toán')
 
     name = fields.Char(string='Mã dự toán')
     cost_center_id = fields.Many2one('hr.expense_approval.cost_center_code',string="Mã dự toán",onchange='_get_avaiable_amount',required=True)
@@ -25,6 +26,8 @@ class CostCenterRequest(models.Model):
     currency_rate = fields.Float(string="Tỷ giá",default=1,store=True)
     avaiable_amount = fields.Float(string = "Số còn khả dụng (VNĐ)", compute='_get_avaiable_amount',readonly=True)
     payment_date = fields.Date(string="Ngày đề nghị thanh toán",readonly=True, compute='_get_payment_date', onchange='_get_avaiable_amount')
+    payment_amount = fields.Float(string ='Số tiền thanh toán', store=True)
+    payment_amount_vnd = fields.Float(string ='Số tiền thanh toán (VNĐ)', readonly=True, store=True)
 
     @api.depends('request_quotation','request_quotation.payment_date')
     def _get_payment_date(self):
